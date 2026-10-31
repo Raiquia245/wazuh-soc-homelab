@@ -394,6 +394,20 @@ Jurnal kronologis seluruh tindakan teknis pada home lab. Setiap entri mencatat w
 - **Status:** Selesai
 - **Tindak lanjut:** Gunakan wording “volume alert” vs “alert yang ditriase” secara konsisten.
 
+### 19:05 WIB — Perbaiki nama file screenshot dan README
+
+- **Fase:** Dokumentasi
+- **Aksi:** Menyelaraskan nama file screenshot dengan link README dan mengurangi redaksi berlebihan.
+- **Perubahan:**
+  - `2agent windows and linux.png` → `agents-active.png`
+  - `syscheck linux.png` → `linux-fim.png`
+  - `sysmon2.png` → `sysmon-process.png`
+  - `4625.png` → `alert-4625.png`
+  - `92213.png` → `false-positive-92213.png`
+  - API ID dibiarkan terlihat; hanya hostname/username yang disamarkan.
+- **Status:** Selesai
+- **Tindak lanjut:** Push update README.
+
 ---
 
 ## Template Entri

@@ -12,7 +12,7 @@ Lab keamanan defensif mandiri di laptop pribadi: Wazuh SIEM di WSL2/Docker, endp
 
 ## Screenshots
 
-> Screenshot sudah diredaksi untuk menghapus hostname, username, dan API ID.
+> Screenshot sudah diredaksi untuk menghapus hostname dan username.
 
 ### Dashboard overview
 ![Dashboard overview](docs/screenshots/dashboard.png)
@@ -38,7 +38,7 @@ Lab keamanan defensif mandiri di laptop pribadi: Wazuh SIEM di WSL2/Docker, endp
 ## Privasi
 
 - Hostname, username, dan nama agent Windows sudah disamarkan (`LAB-WIN`, `analyst`).
-- Screenshot di `docs/screenshots/` sudah diredaksi (hostname, username, API ID).
+- Screenshot di `docs/screenshots/` sudah diredaksi (hostname, username).
 - Original screenshot mentah disimpan **di luar repo**.
 - Credential lab diganti placeholder; secret lokal ada di `.env` yang di-gitignore.
 - Jangan commit `.env`, `client.keys`, `*.pem`, atau screenshot original.
