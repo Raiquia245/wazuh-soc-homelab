@@ -1,47 +1,47 @@
-# Laporan Proyek Home Lab SIEM & SOC
+# Home Lab SIEM & SOC Project Report
 
-**Proyek:** Virtual Home Lab + Wazuh SIEM di Laptop Pribadi  
-**Penulis:** Valdez Bentiraz  
-**Tanggal:** 26 Oktober 2026  
-**Status:** Fase 0–3 selesai; Fase 4–6 direncanakan  
-**Lingkungan:** Acer Nitro AN515-52, Windows 11, WSL2 Ubuntu 22.04, Docker, Wazuh 4.14.9
-
----
-
-## 1. Ringkasan Eksekutif
-
-Proyek ini membangun lab keamanan defensif mandiri di satu laptop tanpa perangkat tambahan. Tujuannya bukan sekadar memasang SIEM, tetapi mempraktikkan siklus kerja SOC: mengumpulkan telemetri endpoint, memvalidasi deteksi, menganalisis alert, membedakan false positive dari insiden, dan mendokumentasikan proses.
-
-Hasil utama:
-
-- Wazuh 4.14.9 berjalan sebagai single-node stack (manager, indexer, dashboard) di Docker dalam WSL2.
-- Windows 11 host dimonitor sebagai endpoint pertama menggunakan Sysmon dan Wazuh agent 001.
-- Telemetri yang tervalidasi: Security 4625 (failed logon), Security 4688 (process creation), Sysmon Event ID 1, PowerShell 4104, dan FIM rule 550.
-- Alert volume dianalisis: mayoritas adalah level rendah dari process creation, SCA compliance, dan error service Windows. Satu alert level 15 terbukti false positive.
-- Kendala nyata (disk C:, RAM 16 GB, Docker/WSL quirks) diselesaikan dan didokumentasikan sebagai bagian dari pembelajaran.
+**Project:** Virtual Home Lab + Wazuh SIEM on a Personal Laptop  
+**Author:** Valdez Bentiraz  
+**Date:** October 26, 2026  
+**Status:** Phases 0–3 complete; Phases 4–6 planned  
+**Environment:** Acer Nitro AN515-52, Windows 11, WSL2 Ubuntu 22.04, Docker, Wazuh 4.14.9
 
 ---
 
-## 2. Tujuan
+## 1. Executive Summary
 
-1. Membangun SIEM Wazuh yang berjalan stabil di laptop pribadi.
-2. Mengirim telemetri Windows yang relevan untuk deteksi ke Wazuh.
-3. Memvalidasi bahwa event keamanan benar-benar masuk dan memicu rule.
-4. Menganalisis alert volume dan false positive.
-5. Menyusun workflow triage yang dapat dijelaskan saat interview SOC Analyst.
-6. Menyiapkan fondasi untuk latihan serangan–deteksi (purple team) dan ESP32 wireless lab.
+This project builds a self-contained defensive security lab on a single laptop without additional hardware. The goal is not merely to install a SIEM, but to practice the SOC workflow: collecting endpoint telemetry, validating detections, analyzing alerts, distinguishing false positives from incidents, and documenting the process.
 
-## 3. Scope dan Etika
+Key results:
 
-- Semua pengujian dilakukan pada laptop, VM/WSL, container, dan AP milik sendiri.
-- Tidak ada scanning atau serangan ke jaringan, domain, atau perangkat pihak lain.
-- Lab berjalan lokal; dashboard/API tidak diekspos ke internet.
-- Kredensial default tidak dimasukkan ke dokumen portofolio dan harus dirotasi sebelum ada eksposur.
-- Pengujian brute force pada akun Windows nyata dibatasi untuk menghindari lockout; target latihan utama adalah container Linux.
+- Wazuh 4.14.9 runs as a single-node stack (manager, indexer, dashboard) in Docker within WSL2.
+- The Windows 11 host is monitored as the first endpoint using Sysmon and Wazuh agent 001.
+- Validated telemetry: Security 4625 (failed logon), Security 4688 (process creation), Sysmon Event ID 1, PowerShell 4104, and FIM rule 550.
+- Alert volume analyzed: the majority are low-level from process creation, SCA compliance, and Windows service errors. One level 15 alert proved to be a false positive.
+- Real constraints (C: drive, 16 GB RAM, Docker/WSL quirks) were resolved and documented as part of the learning.
 
 ---
 
-## 4. Arsitektur
+## 2. Objectives
+
+1. Build a Wazuh SIEM that runs stably on a personal laptop.
+2. Send relevant Windows telemetry for detection to Wazuh.
+3. Validate that security events actually arrive and trigger rules.
+4. Analyze alert volume and false positives.
+5. Develop a triage workflow that can be explained in a SOC Analyst interview.
+6. Prepare a foundation for attack–detection (purple team) exercises and an ESP32 wireless lab.
+
+## 3. Scope and Ethics
+
+- All testing is performed on my own laptop, VMs/WSL, containers, and AP.
+- No scanning or attacks against networks, domains, or devices belonging to others.
+- The lab runs locally; dashboard/API are not exposed to the internet.
+- Default credentials are not included in portfolio documents and must be rotated before any exposure.
+- Brute force testing against real Windows accounts is limited to avoid lockout; the primary practice target is a Linux container.
+
+---
+
+## 4. Architecture
 
 ```text
 +---------------------------------------------------------------+
@@ -62,73 +62,73 @@ Hasil utama:
 |   +-- wazuh.indexer   (9200, localhost)                       |
 |   +-- wazuh.dashboard (443 -> 5601)                           |
 |                                                               |
-|  [Fase 4] victim containers: DVWA / Juice Shop / Ubuntu       |
-|  [Fase 4] attack tools di Ubuntu (bukan Kali terpisah)        |
-|  [Fase 6] bridge MQTT/syslog untuk ESP32                      |
+|  [Phase 4] victim containers: DVWA / Juice Shop / Ubuntu      |
+|  [Phase 4] attack tools in Ubuntu (not a separate Kali)       |
+|  [Phase 6] MQTT/syslog bridge for ESP32                       |
 +---------------------------------------------------------------+
 ```
 
-Catatan jaringan:
+Network notes:
 
-- WSL memakai NAT. Port dashboard 443 dipublikasikan di WSL, tetapi tidak otomatis terbuka ke LAN.
-- Windows dapat mengakses dashboard dan port agent melalui `localhost` (localhost forwarding).
-- Indexer 9200 dan API 55000 dibatasi ke `127.0.0.1`.
-- Enrollment agent memakai port 1515 tanpa password pada lab ini.
+- WSL uses NAT. Dashboard port 443 is published in WSL, but is not automatically opened to the LAN.
+- Windows can access the dashboard and agent ports via `localhost` (localhost forwarding).
+- Indexer 9200 and API 55000 are bound to `127.0.0.1`.
+- Agent enrollment uses port 1515 without a password in this lab.
 
 ---
 
-## 5. Inventaris Hardware dan Software
+## 5. Hardware and Software Inventory
 
-| Komponen | Detail |
+| Component | Detail |
 |---|---|
 | Host | Acer Nitro AN515-52 |
-| CPU | Intel Core i5-8300H, 4 core / 8 thread |
+| CPU | Intel Core i5-8300H, 4 cores / 8 threads |
 | GPU | NVIDIA GeForce GTX 1050 (mobile) 4 GB + Intel UHD Graphics 630 |
-| RAM | 16 GB (2 × 8 GB DDR4-2666), 2 slot, maksimal 32 GB |
-| Storage | C: 476 GB (sisa ±35 GB), D: 931 GB (sisa ±232 GB) |
+| RAM | 16 GB (2 × 8 GB DDR4-2666), 2 slots, max 32 GB |
+| Storage | C: 476 GB (±35 GB free), D: 931 GB (±232 GB free) |
 | OS | Windows 11 Home Single Language, build 26200 |
 | WSL | WSL 3.0.3.0, Ubuntu 22.04.5 LTS, kernel 6.18.54.1 |
-| WSL config | 6 GB RAM, 4 vCPU, swap 4 GB di D:, `autoMemoryReclaim=gradual` |
+| WSL config | 6 GB RAM, 4 vCPU, 4 GB swap on D:, `autoMemoryReclaim=gradual` |
 | Docker | Engine 29.9.2, Compose v5.6.1 |
 | SIEM | Wazuh 4.14.9 (manager, indexer, dashboard) |
-| Endpoint telemetry | Sysmon64 + config SwiftOnSecurity; Wazuh agent 4.14.9 |
-| Agent | ID 001, nama `LAB-WIN`, status `active` |
+| Endpoint telemetry | Sysmon64 + SwiftOnSecurity config; Wazuh agent 4.14.9 |
+| Agent | ID 001, name `LAB-WIN`, status `active` |
 | Dashboard | `https://localhost/app/login` |
 | API | `https://127.0.0.1:55000` |
 | Indexer | `https://127.0.0.1:9200` |
 
 ---
 
-## 6. Ringkasan Implementasi per Fase
+## 6. Implementation Summary by Phase
 
-| Fase | Aktivitas | Status |
+| Phase | Activity | Status |
 |---|---|---|
-| 0 | Pindah VHDX WSL ke D:, tuning RAM/CPU/swap | Selesai |
-| 1 | Install Docker Engine native + Compose | Selesai |
-| 2 | Deploy Wazuh single-node 4.14.9 | Selesai |
-| 3 | Sysmon + Wazuh agent + audit policy + validasi event | Selesai |
-| 4 | Victim container + tools serangan + Linux victim/auditd | Belum |
-| 5 | Siklus attack → detect → triage → tuning | Belum |
-| 6 | ESP32 wireless attacker/sensor + bridge log | Belum |
-| 7 | Hardening kredensial, backup, retensi, portfolio final | Sebagian |
+| 0 | Move WSL VHDX to D:, tune RAM/CPU/swap | Complete |
+| 1 | Install native Docker Engine + Compose | Complete |
+| 2 | Deploy Wazuh single-node 4.14.9 | Complete |
+| 3 | Sysmon + Wazuh agent + audit policy + event validation | Complete |
+| 4 | Victim container + attack tools + Linux victim/auditd | Not started |
+| 5 | Attack → detect → triage → tuning cycle | Not started |
+| 6 | ESP32 wireless attacker/sensor + log bridge | Not started |
+| 7 | Credential hardening, backup, retention, final portfolio | Partial |
 
 ---
 
-## 7. Detail Implementasi
+## 7. Implementation Details
 
-### 7.1 Fase 0 — Storage dan Resource WSL
+### 7.1 Phase 0 — WSL Storage and Resources
 
-Masalah awal:
+Initial problems:
 
-- C: hanya sisa 18,8 GB (97% terpakai), sementara `ext4.vhdx` Ubuntu berukuran 28 GB di C:.
-- WSL default hanya mendapat 7,7 GB RAM, di bawah rekomendasi Wazuh single-node (8 GB).
-- Karena sistem tidak punya `/dev/kvm`, lab difokuskan pada WSL + Docker, bukan VM penuh.
+- C: had only 18.8 GB free (97% used), while the Ubuntu `ext4.vhdx` was 28 GB on C:.
+- WSL by default received only 7.7 GB RAM, below the Wazuh single-node recommendation (8 GB).
+- Because the system has no `/dev/kvm`, the lab focused on WSL + Docker rather than a full VM.
 
-Tindakan:
+Actions:
 
-- `wsl --shutdown`, lalu `wsl --manage Ubuntu --move D:\WSL\Ubuntu`.
-- Mengaktifkan sparse VHD.
-- Membuat `C:\Users\analyst\.wslconfig`:
+- `wsl --shutdown`, then `wsl --manage Ubuntu --move D:\WSL\Ubuntu`.
+- Enabled sparse VHD.
+- Created `C:\Users\analyst\.wslconfig`:
 
 ```ini
 [wsl2]
@@ -143,57 +143,57 @@ sparseVhd=true
 autoMemoryReclaim=gradual
 ```
 
-- Swap dipindahkan ke D: agar C: tidak terisi lagi.
+- Swap was moved to D: so C: would not fill up again.
 
-Hasil:
+Results:
 
-- C: bebas dari ±19 GB menjadi ±46 GB.
-- WSL berjalan dengan 6 GB dan 4 vCPU; 3,4 GB terpakai saat Wazuh aktif.
-- `autoMemoryReclaim=gradual` membantu mengembalikan page cache ke Windows saat idle.
+- C: freed from ±19 GB to ±46 GB.
+- WSL runs with 6 GB and 4 vCPU; 3.4 GB used when Wazuh is active.
+- `autoMemoryReclaim=gradual` helps return page cache to Windows when idle.
 
-Catatan trade-off:
+Trade-off note:
 
-- 6 GB berada di bawah angka resmi Wazuh (8 GB), tetapi beban terukur hanya ±3,4 GB. Jika muncul OOM/restart container, naikkan ke 7–8 GB.
+- 6 GB is below Wazuh's official figure (8 GB), but measured load is only ±3.4 GB. If OOM/container restarts occur, raise it to 7–8 GB.
 
-### 7.2 Fase 1 — Docker Engine
+### 7.2 Phase 1 — Docker Engine
 
-- Install Docker Engine resmi dan Compose plugin di Ubuntu WSL.
-- Menghapus sisa konfigurasi Docker Desktop pada `~/.docker/config.json` yang menyebabkan error `docker-credential-desktop.exe` (backup dibuat).
-- Menetapkan `vm.max_map_count=262144` agar Wazuh indexer dapat berjalan.
-- Docker data root berada di ext4 WSL (secara fisik di D: setelah VHDX dipindah).
+- Installed the official Docker Engine and Compose plugin on Ubuntu WSL.
+- Removed leftover Docker Desktop configuration in `~/.docker/config.json` that caused a `docker-credential-desktop.exe` error (backup created).
+- Set `vm.max_map_count=262144` so the Wazuh indexer could run.
+- Docker data root is on the WSL ext4 (physically on D: after the VHDX was moved).
 
-Validasi:
+Validation:
 
-- `docker run --rm hello-world` berhasil.
-- `docker info` menunjukkan Engine 29.9.2 dan data root `/var/lib/docker`.
+- `docker run --rm hello-world` succeeded.
+- `docker info` showed Engine 29.9.2 and data root `/var/lib/docker`.
 
-### 7.3 Fase 2 — Wazuh Single-Node
+### 7.3 Phase 2 — Wazuh Single-Node
 
-- Clone `wazuh-docker` tag `v4.14.9`, jalankan stack single-node.
-- Certificate dibuat dengan `generate-indexer-certs.yml`.
-- Port dashboard 443, agent 1514/1515, API 55000, indexer 9200.
-- API dan indexer dibatasi ke `127.0.0.1`; dashboard mengikuti NAT WSL.
+- Cloned `wazuh-docker` tag `v4.14.9`, ran the single-node stack.
+- Certificates generated with `generate-indexer-certs.yml`.
+- Dashboard port 443, agent 1514/1515, API 55000, indexer 9200.
+- API and indexer bound to `127.0.0.1`; dashboard follows WSL NAT.
 
-Kendala dan perbaikan:
+Issues and fixes:
 
-1. **Certificate kosong** — Docker membuat folder `config/wazuh_indexer_ssl_certs` sebagai `root:root` mode `500` saat bind mount pertama. Perbaikan: buat folder sebelum generator, regenerasi certificate, lalu jalankan stack.
-2. **Dashboard macet di migrasi `.kibana_1`** — request pertama timeout karena indexer masih lambat saat startup, menyisakan index setengah jadi. Perbaikan: hapus `.kibana_1`, restart dashboard; migrasi selesai ±14 detik.
+1. **Empty certificates** — Docker created the `config/wazuh_indexer_ssl_certs` folder as `root:root` mode `500` on the first bind mount. Fix: create the folder before the generator, regenerate certificates, then start the stack.
+2. **Dashboard stuck on `.kibana_1` migration** — the first request timed out because the indexer was still slow at startup, leaving a half-finished index. Fix: delete `.kibana_1`, restart the dashboard; migration completed in ±14 seconds.
 
-Validasi:
+Validation:
 
 - Dashboard `https://localhost/app/login` → HTTP 200.
-- Cluster indexer `green`.
+- Indexer cluster `green`.
 - Manager processes `running`.
-- Agent 000 (manager) aktif.
+- Agent 000 (manager) active.
 
-### 7.4 Fase 3 — Windows Endpoint Telemetry
+### 7.4 Phase 3 — Windows Endpoint Telemetry
 
-Komponen yang dipasang di Windows:
+Components installed on Windows:
 
-- **Sysmon64** dengan config SwiftOnSecurity.
-- **Wazuh agent 4.14.9** dengan manager `127.0.0.1`.
-- Konfigurasi agent:
-  - Event channel: Security, System, Application, Sysmon/Operational, PowerShell/Operational, TaskScheduler/Operational, Defender/Operational, TerminalServices, WinRM, WMI-Activity, SMBClient.
+- **Sysmon64** with the SwiftOnSecurity config.
+- **Wazuh agent 4.14.9** with manager `127.0.0.1`.
+- Agent configuration:
+  - Event channels: Security, System, Application, Sysmon/Operational, PowerShell/Operational, TaskScheduler/Operational, Defender/Operational, TerminalServices, WinRM, WMI-Activity, SMBClient.
   - FIM: Startup folder, System32\Tasks, drivers\etc, Desktop, Downloads, registry Run/RunOnce.
   - SCA, rootcheck, syscollector.
 - Audit policy:
@@ -201,39 +201,39 @@ Komponen yang dipasang di Windows:
   - Logon success/failure.
   - PowerShell Script Block Logging (4104).
 
-Kendala:
+Issues:
 
-- Agent 001 sempat `never_connected` setelah enrollment; ini transien sebelum koneksi pertama. Setelah keepalive pertama, status menjadi `active`.
-- `Stop-Service SplunkForwarder` sempat timeout 120 detik (event 7011), tetapi service akhirnya berhenti dan StartMode menjadi `Manual`.
+- Agent 001 was briefly `never_connected` after enrollment; this was transient before the first connection. After the first keepalive, the status became `active`.
+- `Stop-Service SplunkForwarder` timed out at 120 seconds (event 7011), but the service eventually stopped and StartMode became `Manual`.
 
-Validasi deteksi:
+Detection validation:
 
-| Uji | Event / Rule | Hasil |
+| Test | Event / Rule | Result |
 |---|---|---|
-| Failed logon `net use \\127.0.0.1\IPC$ /user:fake wrongpass` | Security 4625 → rule 60122 | Berhasil |
-| Process creation (notepad/cmd) | Sysmon ID 1 → rule 92031/92032 | Berhasil |
-| Process creation audit | Security 4688 → rule 67027 | Berhasil |
-| PowerShell activity | 4104 → rule 91815/91816 | Berhasil |
-| FIM perubahan task Windows | Rule 550 (`C:\Windows\System32\Tasks\...`) | Berhasil |
-| FIM file singkat di Startup | Rule 550 | Tidak tertangkap pada uji singkat; FIM terbukti bekerja lewat Tasks |
+| Failed logon `net use \\127.0.0.1\IPC$ /user:fake wrongpass` | Security 4625 → rule 60122 | Success |
+| Process creation (notepad/cmd) | Sysmon ID 1 → rule 92031/92032 | Success |
+| Process creation audit | Security 4688 → rule 67027 | Success |
+| PowerShell activity | 4104 → rule 91815/91816 | Success |
+| FIM Windows task change | Rule 550 (`C:\Windows\System32\Tasks\...`) | Success |
+| FIM short-lived file in Startup | Rule 550 | Not captured in the short test; FIM proven working via Tasks |
 
 ---
 
-## 8. Analisis Volume Alert (Bukan Triage Menyeluruh)
+## 8. Alert Volume Analysis (Not Full Triage)
 
-Snapshot 26 Oktober 2026 ±12:42 WIB:
+Snapshot October 26, 2026 ±12:42 WIB:
 
-- Agent 001: ±2.167 alert.
-- Agent 000 (manager): 219 alert.
-- Total kira-kira 2.400 alert, mayoritas level rendah.
+- Agent 001: ±2,167 alerts.
+- Agent 000 (manager): 219 alerts.
+- Total approximately 2,400 alerts, mostly low level.
 
-**Klarifikasi penting:** angka ini adalah **volume alert yang diindeks**, bukan jumlah alert yang sudah ditriase. Triage yang benar-benar dilakukan hanya pada sampel representatif: 4625/60122, 92213, 92058, FIM 550, dan 61102/61107 NVIDIA. Alert level rendah lainnya belum ditriase satu per satu.
+**Important clarification:** this number is the **alert volume indexed**, not the number of alerts that have been triaged. Actual triage was performed only on a representative sample: 4625/60122, 92213, 92058, FIM 550, and 61102/61107 NVIDIA. Other low-level alerts have not been triaged individually.
 
-Distribusi level (snapshot):
+Level distribution (snapshot):
 
-| Level | Kategori | Jumlah |
+| Level | Category | Count |
 |---:|---|---:|
-| 3 | Low | ±1.343 |
+| 3 | Low | ±1,343 |
 | 4 | Medium-low | ±122 |
 | 5 | Medium | ±316 |
 | 7 | Medium | ±353 |
@@ -242,9 +242,9 @@ Distribusi level (snapshot):
 | 12 | Critical | 1 |
 | 15 | Critical | 9 |
 
-Top rule:
+Top rules:
 
-| Rule | Jumlah | Sumber / Arti |
+| Rule | Count | Source / Meaning |
 |---|---:|---|
 | 67027 | 944 | Security 4688 process creation |
 | 19007 | 347 | SCA CIS Windows 11 (compliance) |
@@ -254,157 +254,157 @@ Top rule:
 | 92032 | 114 | Sysmon process-related rule |
 | 92031 | 64 | Sysmon discovery activity |
 | 92052 | 60 | Sysmon rule |
-| 92036 | 58 | Sysmon `net.exe` dari cmd |
+| 92036 | 58 | Sysmon `net.exe` from cmd |
 | 61110 | 24 | Multiple System error events (NVIDIA noise) |
 | 92213 | 9 | Executable dropped in malware folder |
 
-Interpretasi:
+Interpretation:
 
-1. **Alert ≠ insiden.** Sebagian besar adalah telemetri normal yang cocok dengan rule level rendah.
-2. **Duplikasi process creation.** 4688 (67027) dan Sysmon (92031/92032) sama-sama mencatat proses. Ini menambah volume.
-3. **SCA bukan insiden.** 19007/19008 adalah temuan compliance CIS, bukan serangan.
-4. **Crash loop service NVIDIA.** 61102/61107/61110 berasal dari `NvContainerLocalSystem` yang crash berulang. Log `C:\ProgramData\NVIDIA\NvContainerLocalSystem.log` menunjukkan plugin wajib `NvPluginWatchdog` gagal inisialisasi dan container keluar dengan exit code `14109`. Windows Service Control Manager mencatat event 7031 (service terminated unexpectedly) dan 7023 (service terminated with error), lalu melakukan recovery restart. Ini masalah operasional/driver (driver 546.01 pada Windows build 26200), bukan serangan. Pada snapshot awal ada 518 alert NVIDIA (258 rule 61102, 224 rule 61107, 36 rule 61110); karena crash loop berlanjut, jumlahnya meningkat menjadi **9.991** pada snapshot berikutnya. Log plugin juga menunjukkan dependency `MessageBus.dll` gagal dan beberapa plugin (`_NvMdnsPlugin.dll`, `_NvStreamControl.dll`, `_IdentityPlugin.dll`) error 126, disertai `NvPluginWatchdog` gagal inisialisasi. Recovery program yang dijalankan Windows adalah `C:\Windows\NvContainerRecovery.bat`; file ini sudah diverifikasi legitimate (hanya registry recovery + `net start`, ACL normal, SHA256 `10102167...CA76`), bukan persistence. Log recovery juga menunjukkan `net start` gagal dengan error 14109. **Perbaikan:** driver di-update ke **582.78**; `NvContainerLocalSystem` sekarang `Running`; tidak ada event 7031/7023 atau alert NVIDIA baru sejak boot 29 Oktober 10:01. Ribuan alert lama tetap ada sebagai histori.
-5. **False positive level 15.** Rule 92213 menandai `__PSScriptPolicyTest_*.ps1` di `AppData\Local\Temp` yang dibuat `powershell.exe`. File ini adalah uji internal PowerShell saat memeriksa execution policy, bukan malware. Pada snapshot 29 Oktober, rule 92213 mencapai 457 alert: 407 dari Visual Studio Setup Service (`BackgroundDownload.exe`), 41 dari PowerShell policy test, sisanya updater Opera GX/BingSvc/installer. Ini menunjukkan rule 92213 sangat broad dan perlu tuning berbasis parent process/target file, bukan suppression global.
-6. **Satu failed logon** dari uji `net use` memicu 60122; satu kegagalan belum tentu insiden, perlu konteks frekuensi dan sumber.
-
----
-
-## 9. Workflow Alert Management
-
-Wazuh 4.x tidak memiliki status per-alert atau case management native. Alert bersifat immutable. Karena itu, status triage harus dikelola di luar SIEM.
-
-Alur yang direkomendasikan:
-
-1. Filter antrean: `rule.level >= 7`, 24 jam terakhir.
-2. Buang kategori non-insiden: SCA, error service yang diketahui, rule process creation level 3.
-3. Deduplikasi berdasarkan rule + agent + user/source IP + time window.
-4. Buat case di tracker eksternal dan simpan `_id` alert Wazuh.
-5. Enrichment: parent process, hash, signer, user, path, reputasi, asset criticality.
-6. Tentukan disposisi: True Positive, False Positive, Benign, Duplicate.
-7. Eskalasi/tindakan atau tutup.
-8. Tuning: suppression, threshold, frequency rule, atau perbaikan konfigurasi.
-
-Detail triage dan contoh case ada di `06-LAB-JOURNAL.md` serta `triage-cases.csv`.
+1. **Alert ≠ incident.** Most are normal telemetry matching low-level rules.
+2. **Process creation duplication.** 4688 (67027) and Sysmon (92031/92032) both record processes. This adds volume.
+3. **SCA is not an incident.** 19007/19008 are CIS compliance findings, not attacks.
+4. **NVIDIA service crash loop.** 61102/61107/61110 come from `NvContainerLocalSystem` crashing repeatedly. The log `C:\ProgramData\NVIDIA\NvContainerLocalSystem.log` shows the mandatory plugin `NvPluginWatchdog` failing to initialize and the container exiting with exit code `14109`. Windows Service Control Manager records event 7031 (service terminated unexpectedly) and 7023 (service terminated with error), then performs a recovery restart. This is an operational/driver issue (driver 546.01 on Windows build 26200), not an attack. In the initial snapshot there were 518 NVIDIA alerts (258 rule 61102, 224 rule 61107, 36 rule 61110); because the crash loop continued, the count rose to **9,991** in the next snapshot. The plugin log also shows the `MessageBus.dll` dependency failing and several plugins (`_NvMdnsPlugin.dll`, `_NvStreamControl.dll`, `_IdentityPlugin.dll`) error 126, along with `NvPluginWatchdog` failing to initialize. The recovery program run by Windows is `C:\Windows\NvContainerRecovery.bat`; this file was verified legitimate (only registry recovery + `net start`, normal ACL, SHA256 `10102167...CA76`), not persistence. The recovery log also shows `net start` failing with error 14109. **Fix:** driver updated to **582.78**; `NvContainerLocalSystem` is now `Running`; no 7031/7023 events or new NVIDIA alerts since the October 29 10:01 boot. The thousands of old alerts remain as history.
+5. **Level 15 false positive.** Rule 92213 flags `__PSScriptPolicyTest_*.ps1` in `AppData\Local\Temp` created by `powershell.exe`. This file is PowerShell's internal test when checking execution policy, not malware. In the October 29 snapshot, rule 92213 reached 457 alerts: 407 from Visual Studio Setup Service (`BackgroundDownload.exe`), 41 from PowerShell policy tests, the rest from Opera GX/BingSvc/installer updaters. This shows rule 92213 is very broad and needs tuning based on parent process/target file, not global suppression.
+6. **One failed logon** from the `net use` test triggered 60122; a single failure is not necessarily an incident; frequency and source context are needed.
 
 ---
 
-## 10. Kendala dan Resolusi
+## 9. Alert Management Workflow
 
-| # | Kendala | Dampak | Resolusi |
+Wazuh 4.x has no per-alert status or native case management. Alerts are immutable. Therefore, triage status must be managed outside the SIEM.
+
+Recommended flow:
+
+1. Filter the queue: `rule.level >= 7`, last 24 hours.
+2. Discard non-incident categories: SCA, known service errors, level 3 process creation rules.
+3. Deduplicate by rule + agent + user/source IP + time window.
+4. Create a case in an external tracker and store the Wazuh alert `_id`.
+5. Enrichment: parent process, hash, signer, user, path, reputation, asset criticality.
+6. Determine disposition: True Positive, False Positive, Benign, Duplicate.
+7. Escalate/act or close.
+8. Tuning: suppression, threshold, frequency rule, or configuration fix.
+
+Triage details and example cases are in `06-LAB-JOURNAL.md` and `triage-cases.csv`.
+
+---
+
+## 10. Issues and Resolution
+
+| # | Issue | Impact | Resolution |
 |---:|---|---|---|
-| 1 | C: hampir penuh, VHDX di C: | Wazuh tidak muat | Pindah VHDX ke D:, sparse VHD |
-| 2 | WSL hanya 7,7 GB | Di bawah rekomendasi Wazuh | Naikkan batas, lalu turunkan ke 6 GB setelah analisis |
-| 3 | `docker-credential-desktop.exe` | Pull image gagal | Hapus `credsStore` dari `~/.docker/config.json` |
-| 4 | Certificate Wazuh kosong | Stack tidak bisa start | Buat folder cert sebelum generator, regenerasi |
-| 5 | Dashboard macet migrasi `.kibana_1` | Dashboard 503 | Hapus index setengah jadi, restart dashboard |
-| 6 | Host 92–94% RAM | Ngelag | Matikan service/startup non-esensial, tutup Chrome, batasi WSL, autoMemoryReclaim |
-| 7 | SplunkForwarder stop timeout | Proses stop lambat | Service tetap berhenti; StartMode Manual |
-| 8 | Agent `never_connected` | Terlihat gagal | Transien; menjadi active setelah koneksi pertama |
-| 9 | FIM file Startup tidak tertangkap | Uji FIM tampak gagal | FIM terbukti bekerja via rule 550 pada Tasks; uji file singkat perlu timing lebih baik |
-| 10 | Wazuh API config query timeout | Investigasi FIM via API gagal | Retry saat manager tidak sibuk; gunakan log/alternative query |
-| 11 | NVIDIA `NvContainerLocalSystem` crash loop | Ribuan alert noise; service restart berulang | **Resolved:** update driver ke 582.78; service Running; 0 alert baru sejak boot |
+| 1 | C: nearly full, VHDX on C: | Wazuh would not fit | Move VHDX to D:, sparse VHD |
+| 2 | WSL only 7.7 GB | Below Wazuh recommendation | Raise the limit, then lower to 6 GB after analysis |
+| 3 | `docker-credential-desktop.exe` | Image pull failed | Remove `credsStore` from `~/.docker/config.json` |
+| 4 | Wazuh certificates empty | Stack could not start | Create the cert folder before the generator, regenerate |
+| 5 | Dashboard stuck on `.kibana_1` migration | Dashboard 503 | Delete the half-finished index, restart the dashboard |
+| 6 | Host 92–94% RAM | Lag | Disable non-essential services/startup, close Chrome, limit WSL, autoMemoryReclaim |
+| 7 | SplunkForwarder stop timeout | Slow stop process | Service still stopped; StartMode Manual |
+| 8 | Agent `never_connected` | Appeared failed | Transient; became active after the first connection |
+| 9 | FIM Startup file not captured | FIM test appeared to fail | FIM proven working via rule 550 on Tasks; short file test needs better timing |
+| 10 | Wazuh API config query timeout | FIM investigation via API failed | Retry when the manager is idle; use logs/alternative query |
+| 11 | NVIDIA `NvContainerLocalSystem` crash loop | Thousands of noise alerts; repeated service restarts | **Resolved:** update driver to 582.78; service Running; 0 new alerts since boot |
 
 ---
 
-## 11. Keamanan dan Batasan
+## 11. Security and Limitations
 
-### Keamanan
+### Security
 
-- Dashboard/API/indexer hanya untuk localhost/NAT; tidak ada port forward ke internet.
-- Indexer dan API dibatasi `127.0.0.1`.
-- Kredensial default lab **tidak ditulis** di dokumen ini; rotasi belum dilakukan.
-- Enrollment agent memakai `use_password=no`; port 1515 hanya dapat dijangkau lokal. Jika nanti memakai mirrored networking atau eksposur, aktifkan password enrollment.
-- User indexer demo (`kibanaro`, `logstash`, `readall`, `snapshotrestore`) masih aktif dengan password default dan sebaiknya dinonaktifkan.
-- Grup `docker` di WSL setara root; jangan menambahkan user yang tidak dipercaya.
-- Agent key di `client.keys` adalah secret; jangan dipublikasikan.
+- Dashboard/API/indexer only for localhost/NAT; no port forwarding to the internet.
+- Indexer and API bound to `127.0.0.1`.
+- Lab default credentials are **not written** in this document; rotation has not been performed.
+- Agent enrollment uses `use_password=no`; port 1515 is only reachable locally. If mirrored networking or exposure is used later, enable the enrollment password.
+- Demo indexer users (`kibanaro`, `logstash`, `readall`, `snapshotrestore`) are still active with default passwords and should be disabled.
+- The `docker` group in WSL is equivalent to root; do not add untrusted users.
+- Agent keys in `client.keys` are secrets; do not publish them.
 
-### Batasan
+### Limitations
 
-- 16 GB RAM adalah batasan utama. 6 GB WSL adalah trade-off; jika Wazuh OOM, naikkan ke 7–8 GB.
-- Tidak ada KVM, sehingga lab tidak memakai VM penuh.
-- WSL2 bukan lingkungan identik dengan server produksi; perilaku jaringan dan I/O berbeda.
-- Belum ada NIDS (Suricata/Zeek), belum ada Linux victim, belum ada ESP32.
-- Alert volume masih tinggi; tuning baru sebagian.
-- Dokumentasi belum menyertakan screenshot; lihat checklist evidence.
+- 16 GB RAM is the main constraint. 6 GB for WSL is a trade-off; if Wazuh OOMs, raise it to 7–8 GB.
+- No KVM, so the lab does not use full VMs.
+- WSL2 is not identical to a production server; network and I/O behavior differ.
+- No NIDS (Suricata/Zeek), no Linux victim, no ESP32 yet.
+- Alert volume is still high; tuning is only partial.
+- Documentation does not yet include screenshots; see the evidence checklist.
 
 ---
 
 ## 12. Roadmap
 
-### Jangka pendek
+### Short term
 
-1. Tuning alert:
-   - Suppress 92213 untuk pola `__PSScriptPolicyTest_*`.
-   - Filter 61110/NVIDIA dari antrean insiden.
-   - Pisahkan SCA 19007/19008 ke dashboard compliance.
-   - Putuskan 67027 vs Sysmon untuk mengurangi duplikasi.
-2. Buat case tracker (CSV/Notion/Jira).
-3. Validasi ulang FIM dengan file yang bertahan lebih lama.
+1. Alert tuning:
+   - Suppress 92213 for the `__PSScriptPolicyTest_*` pattern.
+   - Filter 61110/NVIDIA from the incident queue.
+   - Separate SCA 19007/19008 into a compliance dashboard.
+   - Decide between 67027 vs Sysmon to reduce duplication.
+2. Create a case tracker (CSV/Notion/Jira).
+3. Re-validate FIM with a longer-lived file.
 
-### Fase 4 — Victim dan Attack Tools (4A in progress)
+### Phase 4 — Victim and Attack Tools (4A in progress)
 
-- **DVWA** berjalan di `127.0.0.1:8080` (HTTP 302 ke setup/login), container `lab-dvwa`.
-- OWASP Juice Shop: compose siap, dijalankan bergantian karena RAM.
-- Tools di Ubuntu: nmap, hydra, sqlmap, nikto, ffuf, gobuster, impacket, netexec.
-- Metasploit dijalankan on-demand via container.
-- Linux victim + SSH + auditd + Wazuh agent 002 masuk 4B.
+- **DVWA** running at `127.0.0.1:8080` (HTTP 302 to setup/login), container `lab-dvwa`.
+- OWASP Juice Shop: compose ready, run alternately due to RAM.
+- Tools in Ubuntu: nmap, hydra, sqlmap, nikto, ffuf, gobuster, impacket, netexec.
+- Metasploit run on-demand via container.
+- Linux victim + SSH + auditd + Wazuh agent 002 in 4B.
 
-### Fase 5 — Attack → Detect → Triage
+### Phase 5 — Attack → Detect → Triage
 
 - Nmap scan, failed login/brute force, web injection, persistence, credential access.
-- Atomic Red Team untuk teknik ATT&CK yang repeatable.
-- Validasi rule, triage, tuning, dan dokumentasi case.
-- Dashboard MITRE ATT&CK dan metrik alert.
+- Atomic Red Team for repeatable ATT&CK techniques.
+- Rule validation, triage, tuning, and case documentation.
+- MITRE ATT&CK dashboard and alert metrics.
 
-### Fase 6 — ESP32
+### Phase 6 — ESP32
 
-- ESP32 attacker (deauth/evil portal) pada AP sendiri.
-- ESP32 sensor promiscuous → MQTT/syslog → Wazuh custom rule.
-- BLE HID/BadUSB untuk menguji visibilitas endpoint.
-- IoT telemetry (DHT/MQTT) untuk demo IT/OT.
+- ESP32 attacker (deauth/evil portal) on my own AP.
+- ESP32 promiscuous sensor → MQTT/syslog → Wazuh custom rule.
+- BLE HID/BadUSB to test endpoint visibility.
+- IoT telemetry (DHT/MQTT) for an IT/OT demo.
 
 ### Hardening
 
-- Rotasi password admin, kibanaserver, wazuh-wui.
-- Nonaktifkan user indexer demo.
-- Aktifkan enrollment password jika port 1515 terekspos.
-- Backup konfigurasi dan volume; retensi index 7–14 hari.
-- Upgrade RAM ke 2×16 GB DDR4-2666.
+- Rotate admin, kibanaserver, wazuh-wui passwords.
+- Disable demo indexer users.
+- Enable enrollment password if port 1515 is exposed.
+- Back up configuration and volumes; 7–14 day index retention.
+- Upgrade RAM to 2×16 GB DDR4-2666.
 
 ---
 
-## 13. Evidence yang Perlu Diambil untuk Portofolio
+## 13. Evidence to Capture for the Portfolio
 
-- Screenshot dashboard overview dan agent 001 `active`.
-- Screenshot detail alert 4625 (rule 60122).
-- Screenshot Sysmon Event ID 1 (rule 92031/92032).
-- Screenshot PowerShell 4104.
-- Screenshot FIM rule 550.
-- Screenshot alert 92213 beserta analisis false positive.
-- Screenshot MITRE ATT&CK dashboard.
-- Screenshot `docker compose ps` dan `free -h`.
-- Simpan file konfigurasi yang sudah disanitasi (tanpa password/key).
+- Screenshot of dashboard overview and agent 001 `active`.
+- Screenshot of alert 4625 details (rule 60122).
+- Screenshot of Sysmon Event ID 1 (rule 92031/92032).
+- Screenshot of PowerShell 4104.
+- Screenshot of FIM rule 550.
+- Screenshot of alert 92213 with false positive analysis.
+- Screenshot of MITRE ATT&CK dashboard.
+- Screenshot of `docker compose ps` and `free -h`.
+- Keep sanitized configuration files (without passwords/keys).
 
 ---
 
-## 14. Referensi
+## 14. References
 
 - Wazuh Documentation — Docker deployment, agent configuration, rules.
 - Microsoft Sysinternals — Sysmon.
 - SwiftOnSecurity — sysmon-config.
 - Microsoft — WSL configuration (`.wslconfig`), memory reclaim.
-- MITRE ATT&CK — teknik dan taktik.
+- MITRE ATT&CK — techniques and tactics.
 - OpenSearch — indexer, security plugin.
 
 ---
 
-## 15. Ringkasan Pelajaran
+## 15. Lessons Summary
 
-Detail ada di [03-LESSONS-LEARNED.md](03-LESSONS-LEARNED.md). Inti:
+Details are in [03-LESSONS-LEARNED.md](03-LESSONS-LEARNED.md). Key points:
 
-- Kapasitas RAM dan disk harus direncanakan sebelum deploy SIEM.
-- Memahami perbedaan event, alert, dan insiden adalah keterampilan inti SOC.
-- Severity tinggi tetap harus divalidasi konteks.
-- False positive harus menghasilkan tuning, bukan hanya ditutup.
-- Alert management adalah kombinasi proses, ticketing, dan tuning—bukan hanya fitur SIEM.
-- Dokumentasi dan bukti adalah bagian dari pekerjaan SOC, bukan tambahan.
+- RAM and disk capacity must be planned before deploying a SIEM.
+- Understanding the difference between events, alerts, and incidents is a core SOC skill.
+- High severity still requires context validation.
+- False positives should produce tuning, not just be closed.
+- Alert management is a combination of process, ticketing, and tuning—not just a SIEM feature.
+- Documentation and evidence are part of SOC work, not an add-on.

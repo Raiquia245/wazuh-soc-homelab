@@ -1,37 +1,37 @@
-# Brief Handoff — NVIDIA NvContainer Crash Loop
+# Handoff Brief — NVIDIA NvContainer Crash Loop
 
-**Tanggal:** 27 Oktober 2026, ±00:45 WIB  
-**Tujuan:** Meminta second opinion dari AI/teknisi lain tentang akar masalah dan langkah perbaikan.  
-**Status:** Investigasi selesai; **belum ada perbaikan yang dijalankan**.
+**Date:** October 27, 2026, ±00:45 WIB  
+**Purpose:** To request a second opinion from AI/another technician about the root cause and remediation steps.  
+**Status:** Investigation complete; **no fix has been applied yet**.
 
 ---
 
-## 1. Ringkasan
+## 1. Summary
 
-Laptop Acer Nitro AN515-52 (Windows 11 build 26200) mengalami crash loop pada service **NVIDIA LocalSystem Container** (`NvContainerLocalSystem`). Service berulang kali terminate, Windows menjalankan recovery program, tetapi `net start` juga gagal dengan error **14109**. Wazuh SIEM menerima event Windows System 7031/7023 dan menghasilkan **9.991 alert** dari rule 61102/61107/61110.
+The Acer Nitro AN515-52 laptop (Windows 11 build 26200) is experiencing a crash loop in the **NVIDIA LocalSystem Container** service (`NvContainerLocalSystem`). The service repeatedly terminates, Windows runs the recovery program, but `net start` also fails with error **14109**. Wazuh SIEM receives Windows System events 7031/7023 and generates **9,991 alerts** from rules 61102/61107/61110.
 
-Gejala ini **bukan serangan malware**. GPU tetap terdeteksi dan berfungsi. Dugaan utama: instalasi NvContainer/driver NVIDIA tidak konsisten atau tidak cocok dengan Windows 11 build 26200.
+These symptoms are **not a malware attack**. The GPU is still detected and working. The main hypothesis: the NvContainer/NVIDIA driver installation is inconsistent or incompatible with Windows 11 build 26200.
 
 ---
 
 ## 2. Environment
 
-| Item | Nilai |
+| Item | Value |
 |---|---|
 | Laptop | Acer Nitro AN515-52 |
 | OS | Windows 11 Home Single Language, 10.0.26200 build 26200 |
 | BIOS | V1.22 |
-| GPU discrete | NVIDIA GeForce GTX 1050 (mobile), 4096 MiB |
-| GPU integrated | Intel UHD Graphics 630 |
-| NVIDIA driver | 546.01 (31.0.15.4601), tanggal 26 Oktober 2023 |
+| Discrete GPU | NVIDIA GeForce GTX 1050 (mobile), 4096 MiB |
+| Integrated GPU | Intel UHD Graphics 630 |
+| NVIDIA driver | 546.01 (31.0.15.4601), dated October 26, 2023 |
 | GeForce Experience | 3.28.0.412 |
 | NVIDIA Container | 1.40 |
 | NVIDIA Watchdog Plugin for NvContainer | 1.40 |
 | NVIDIA ShadowPlay | 3.28.0.412 |
-| NVIDIA App | Tidak terpasang |
+| NVIDIA App | Not installed |
 | Wazuh agent | 4.14.9, agent 001 `LAB-WIN` |
 
-Bukti GPU bukan 1050 Ti:
+Evidence that the GPU is not a 1050 Ti:
 
 ```text
 nvidia-smi --query-gpu=name,memory.total,driver_version --format=csv,noheader
@@ -45,7 +45,7 @@ PNPDeviceID : PCI\VEN_10DE&DEV_1C8D&SUBSYS_12651025...
 
 ---
 
-## 3. Service dan Konfigurasi
+## 3. Services and Configuration
 
 ```text
 Get-Service NvContainerLocalSystem,NVDisplay.ContainerLocalSystem
@@ -72,7 +72,7 @@ Recovery configuration:
 ```text
 sc.exe qfailure NvContainerLocalSystem
 
-RESET_PERIOD : 10 detik
+RESET_PERIOD : 10 seconds
 FAILURE_ACTIONS:
   RESTART -- delay 6000 ms
   RESTART -- delay 8000 ms
@@ -83,16 +83,16 @@ cmd.exe /C %windir%\NvContainerRecovery.bat NvContainerLocalSystem
 C:\ProgramData\NVIDIA\NvContainerRecoveryNvContainerLocalSystem.log
 ```
 
-Recovery program sudah diverifikasi **legitimate NVIDIA**, bukan malware/persistence:
+The recovery program has been verified as **legitimate NVIDIA**, not malware/persistence:
 
-- Isi batch: set registry recovery, `net start %1`, rollback registry, logging.
-- Tidak ada PowerShell/download/encoded command.
+- Batch contents: set registry recovery, `net start %1`, rollback registry, logging.
+- No PowerShell/download/encoded command.
 - ACL: SYSTEM/Administrators FullControl; Users ReadAndExecute.
 - SHA256: `10102167FEFF89EB1170C6AAA6BD5871446854AEF5CBF05BF82B2FB3A4E2CA76`.
 
 ---
 
-## 4. Bukti Event Windows
+## 4. Windows Event Evidence
 
 Event 7031:
 
@@ -109,11 +109,11 @@ The NVIDIA LocalSystem Container service terminated with the following error:
 A generic command executable returned a result that indicates failure.
 ```
 
-Event berulang beberapa detik sekali; pada sampel sebelumnya muncul hitungan ke-1, ke-2, ke-3 lalu recovery.
+The events recur every few seconds; in the earlier sample the counts appeared as 1st, 2nd, 3rd, then recovery.
 
 ---
 
-## 5. Bukti Log NVIDIA
+## 5. NVIDIA Log Evidence
 
 File: `C:\ProgramData\NVIDIA\NvContainerLocalSystem.log`
 
@@ -140,14 +140,14 @@ A generic command executable returned a result that indicates failure.
 
 ---
 
-## 6. Bukti Dampak ke Wazuh
+## 6. Evidence of Wazuh Impact
 
-- Agent Wazuh 001 aktif.
+- Wazuh agent 001 is active.
 - Rule 61102 (Windows System error), 61107 (service terminated unexpectedly), 61110 (multiple system errors).
-- Jumlah alert NVIDIA: **9.991**.
-- Ini membuat noise besar di SIEM dan bisa membebani manager/indexer.
+- NVIDIA alert count: **9,991**.
+- This creates a large amount of noise in the SIEM and can burden the manager/indexer.
 
-Contoh query:
+Example query:
 
 ```bash
 curl -ks -u admin:'<PASSWORD>' \
@@ -156,71 +156,71 @@ curl -ks -u admin:'<PASSWORD>' \
 
 ---
 
-## 7. Analisis
+## 7. Analysis
 
-1. `NvContainerLocalSystem` adalah service untuk komponen NVIDIA seperti GeForce Experience, ShadowPlay, GameStream, telemetry, dan container plugins.
-2. Service crash karena `NvPluginWatchdog` gagal inisialisasi dan dependency `MessageBus.dll` tidak dapat dimuat (registry value tidak ditemukan).
-3. Beberapa plugin GameStream gagal load dengan error 126 (module not found/dependency failure).
-4. Windows recovery menjalankan `NvContainerRecovery.bat`, tetapi `net start` juga gagal dengan 14109.
-5. Driver 546.01 (2023) dan GFE 3.28 (2024) berjalan di Windows 11 build 26200 (2026); ini kombinasi lama dan berpotensi tidak kompatibel.
-6. Tidak ada indikasi malware: recovery program legitimate, GPU terdeteksi, tidak ada command mencurigakan.
+1. `NvContainerLocalSystem` is the service for NVIDIA components such as GeForce Experience, ShadowPlay, GameStream, telemetry, and container plugins.
+2. The service crashes because `NvPluginWatchdog` fails to initialize and the `MessageBus.dll` dependency cannot be loaded (registry value not found).
+3. Several GameStream plugins fail to load with error 126 (module not found/dependency failure).
+4. Windows recovery runs `NvContainerRecovery.bat`, but `net start` also fails with 14109.
+5. Driver 546.01 (2023) and GFE 3.28 (2024) are running on Windows 11 build 26200 (2026); this is an old combination and potentially incompatible.
+6. No indication of malware: the recovery program is legitimate, the GPU is detected, and there are no suspicious commands.
 
 ---
 
-## 8. Yang Sudah dan Belum Dilakukan
+## 8. What Has and Has Not Been Done
 
-Sudah:
+Done:
 
-- Verifikasi model GPU.
-- Verifikasi service dan recovery configuration.
-- Verifikasi isi/ACL/hash recovery batch.
-- Analisis log NvContainer dan event Windows.
-- Analisis alert Wazuh.
-- Dokumentasi di jurnal lab.
+- Verify the GPU model.
+- Verify the service and recovery configuration.
+- Verify the contents/ACL/hash of the recovery batch.
+- Analyze NvContainer logs and Windows events.
+- Analyze Wazuh alerts.
+- Document in the lab journal.
 
-Belum:
+Not done:
 
-- Update/clean install driver NVIDIA.
-- Uninstall/reinstall GeForce Experience atau upgrade ke NVIDIA App.
+- Update/clean install the NVIDIA driver.
+- Uninstall/reinstall GeForce Experience or upgrade to NVIDIA App.
 - DDU.
-- Mengubah StartType service menjadi Manual.
-- Reboot setelah perubahan.
+- Change the service StartType to Manual.
+- Reboot after changes.
 
 ---
 
-## 9. Pertanyaan untuk AI/Teknisi Lain
+## 9. Questions for AI/Other Technicians
 
-1. Apakah kombinasi driver 546.01 + GFE 3.28 pada Windows 11 build 26200 dikenal menyebabkan `NvPluginWatchdog` gagal dan error 14109?
-2. Apakah clean install driver terbaru yang masih mendukung GTX 1050 (notebook) biasanya memperbaiki dependency `MessageBus.dll` dan plugin GameStream error 126?
-3. Sebaiknya update lewat GeForce Experience, NVIDIA App, atau standalone driver? GFE saat ini legacy; NVIDIA App belum terpasang.
-4. Apakah perlu uninstall GeForce Experience/ShadowPlay dan install driver saja, mengingat crash berada di plugin NvContainer?
-5. Apakah DDU perlu, atau clean install dari installer NVIDIA sudah cukup?
-6. Apakah aman menjadikan `NvContainerLocalSystem` Manual jangka panjang jika tidak memakai GFE/ShadowPlay/GameStream? `NVDisplay.ContainerLocalSystem` tetap Running.
-7. Apakah ada langkah lain untuk memperbaiki registry `MessageBus.dll` tanpa reinstall total?
+1. Is the combination of driver 546.01 + GFE 3.28 on Windows 11 build 26200 known to cause `NvPluginWatchdog` failure and error 14109?
+2. Does a clean install of the latest driver still supporting the GTX 1050 (notebook) usually fix the `MessageBus.dll` dependency and GameStream plugin error 126?
+3. Should the update be done via GeForce Experience, NVIDIA App, or the standalone driver? GFE is currently legacy; NVIDIA App is not installed.
+4. Is it necessary to uninstall GeForce Experience/ShadowPlay and install only the driver, given that the crash is in an NvContainer plugin?
+5. Is DDU necessary, or is a clean install from the NVIDIA installer sufficient?
+6. Is it safe to leave `NvContainerLocalSystem` set to Manual long-term if GFE/ShadowPlay/GameStream are not used? `NVDisplay.ContainerLocalSystem` remains Running.
+7. Are there other steps to fix the `MessageBus.dll` registry without a full reinstall?
 
 ---
 
-## 10. Rekomendasi Sementara
+## 10. Temporary Recommendation
 
-Urutan yang paling masuk akal:
+The most reasonable sequence:
 
 1. Backup: restore point + BitLocker key.
-2. Set `NvContainerLocalSystem` ke Manual sementara untuk menghentikan loop.
-3. Download driver resmi NVIDIA untuk GTX 1050 notebook + Windows 11 64-bit.
-4. Custom install → **clean install**; uncheck GFE/ShadowPlay jika tidak dipakai.
-5. Reboot dan verifikasi service/event/alert.
-6. Jika masih gagal: DDU Safe Mode → install driver saja.
-7. Jika tetap gagal: service Manual + kumpulkan log untuk NVIDIA support.
+2. Set `NvContainerLocalSystem` to Manual temporarily to stop the loop.
+3. Download the official NVIDIA driver for the GTX 1050 notebook + Windows 11 64-bit.
+4. Custom install → **clean install**; uncheck GFE/ShadowPlay if not used.
+5. Reboot and verify service/events/alerts.
+6. If it still fails: DDU Safe Mode → install driver only.
+7. If it still fails: Manual service + collect logs for NVIDIA support.
 
-Jangan mematikan `NVDisplay.ContainerLocalSystem`; itu service display.
+Do not disable `NVDisplay.ContainerLocalSystem`; it is the display service.
 
 ---
 
-## 11. Prompt Singkat untuk AI Lain
+## 11. Short Prompt for Another AI
 
 ```text
-Saya punya Acer Nitro AN515-52, Windows 11 build 26200, GTX 1050 mobile 4GB,
-driver NVIDIA 546.01, GeForce Experience 3.28.0.412, NvContainer 1.40.
+I have an Acer Nitro AN515-52, Windows 11 build 26200, GTX 1050 mobile 4GB,
+NVIDIA driver 546.01, GeForce Experience 3.28.0.412, NvContainer 1.40.
 
 NvContainerLocalSystem crash loop. Event 7031/7023:
 "The NVIDIA LocalSystem Container service terminated unexpectedly. It has done this 3 time(s).
@@ -237,36 +237,36 @@ Log C:\ProgramData\NVIDIA\NvContainerLocalSystem.log:
 
 Recovery: cmd.exe /C %windir%\NvContainerRecovery.bat ...
 Recovery log: net start NvContainerLocalSystem failed, system error 14109.
-Recovery batch sudah diverifikasi legitimate NVIDIA (hash 10102167...CA76), bukan malware.
-GPU terdeteksi normal oleh nvidia-smi. NVIDIA App belum terpasang.
+The recovery batch has been verified as legitimate NVIDIA (hash 10102167...CA76), not malware.
+The GPU is detected normally by nvidia-smi. NVIDIA App is not installed.
 
-Pertanyaan: apakah clean install driver terbaru yang masih mendukung GTX 1050 akan memperbaiki ini?
-Sebaiknya lewat GeForce Experience, NVIDIA App, atau standalone installer? Perlu DDU?
-Apakah aman set NvContainerLocalSystem ke Manual jika tidak memakai GFE/ShadowPlay?
+Questions: will a clean install of the latest driver still supporting the GTX 1050 fix this?
+Should I use GeForce Experience, NVIDIA App, or the standalone installer? Is DDU needed?
+Is it safe to set NvContainerLocalSystem to Manual if I don't use GFE/ShadowPlay?
 ```
 
 ---
 
-## 12. Catatan
+## 12. Notes
 
-- Jangan menyalin password/token ke AI lain.
-- Jangan mengirim identifier unik laptop (serial number) ke pihak tidak tepercaya.
-- Setelah perbaikan, verifikasi event 7031/7023 berhenti selama minimal 15–30 menit.
+- Do not copy passwords/tokens to other AIs.
+- Do not send the laptop's unique identifier (serial number) to untrusted parties.
+- After the fix, verify that events 7031/7023 stop for at least 15–30 minutes.
 
 ---
 
-## 13. Cleanup Alert NVIDIA (Opsional)
+## 13. NVIDIA Alert Cleanup (Optional)
 
-Tujuan: mengurangi noise dan membuat baseline setelah perbaikan. Jangan menghapus sebelum mengambil bukti.
+Goal: reduce noise and establish a baseline after the fix. Do not delete before capturing evidence.
 
-### Sebelum menghapus
+### Before deleting
 
-1. Screenshot dashboard yang menunjukkan jumlah alert NVIDIA.
-2. Export sample alert (JSON) untuk bukti.
-3. Catat baseline count dan waktu perbaikan (`FIX_TIME` dalam UTC).
-4. Ingat: penghapusan lewat `_delete_by_query` **tidak bisa dibatalkan**.
+1. Screenshot the dashboard showing the NVIDIA alert count.
+2. Export sample alerts (JSON) as evidence.
+3. Record the baseline count and the fix time (`FIX_TIME` in UTC).
+4. Remember: deletion via `_delete_by_query` **cannot be undone**.
 
-### Hitung baseline
+### Count baseline
 
 ```bash
 curl -ks -u admin:'<ADMIN_PASSWORD>' \
@@ -284,7 +284,7 @@ curl -ks -u admin:'<ADMIN_PASSWORD>' \
   }'
 ```
 
-### Hapus alert NVIDIA spesifik (61102/61107)
+### Delete specific NVIDIA alerts (61102/61107)
 
 ```bash
 curl -ks -u admin:'<ADMIN_PASSWORD>' -X POST \
@@ -302,14 +302,14 @@ curl -ks -u admin:'<ADMIN_PASSWORD>' -X POST \
   }'
 ```
 
-Catatan:
+Notes:
 
-- Rule 61110 adalah frequency rule dan tidak selalu membawa `data.win.eventdata.param1`. Jangan hapus semua 61110; biarkan atau hapus berdasarkan rentang waktu crash loop setelah verifikasi.
-- Jangan menghapus seluruh index `wazuh-alerts-4.x-YYYY.MM.DD`; itu menghapus semua alert hari itu.
+- Rule 61110 is a frequency rule and does not always carry `data.win.eventdata.param1`. Do not delete all 61110; leave it or delete by the crash loop time range after verification.
+- Do not delete the entire `wazuh-alerts-4.x-YYYY.MM.DD` index; that deletes all alerts for that day.
 
-### Setelah driver diperbaiki
+### After the driver is fixed
 
-Catat `FIX_TIME` (UTC), lalu cek apakah ada alert baru:
+Record `FIX_TIME` (UTC), then check whether there are new alerts:
 
 ```bash
 curl -ks -u admin:'<ADMIN_PASSWORD>' \
@@ -328,13 +328,13 @@ curl -ks -u admin:'<ADMIN_PASSWORD>' \
   }'
 ```
 
-Interpretasi:
+Interpretation:
 
-- `count = 0` selama 15–30 menit setelah reboot → service tidak crash lagi.
-- `count > 0` → masalah masih ada; cek `Get-Service` dan Event Viewer.
-- 61110 bisa tetap muncul dari error service lain; jangan jadikan satu-satunya indikator.
+- `count = 0` for 15–30 minutes after reboot → the service is no longer crashing.
+- `count > 0` → the problem persists; check `Get-Service` and Event Viewer.
+- 61110 may still appear from other service errors; do not use it as the sole indicator.
 
-### Verifikasi Windows
+### Windows verification
 
 ```powershell
 Get-Service NvContainerLocalSystem,NVDisplay.ContainerLocalSystem

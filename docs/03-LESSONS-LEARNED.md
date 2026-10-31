@@ -1,188 +1,188 @@
 # Lessons Learned — Home Lab SIEM & SOC
 
-Dokumen ini merangkum pelajaran teknis dan operasional dari pembangunan lab Wazuh di laptop 16 GB, serta implikasinya untuk peran SOC Analyst.
+This document summarizes the technical and operational lessons from building a Wazuh lab on a 16 GB laptop, along with their implications for the SOC Analyst role.
 
 ---
 
-## 1. Pelajaran Teknis
+## 1. Technical Lessons
 
-### 1.1 Resource planning adalah bagian dari desain keamanan
+### 1.1 Resource planning is part of security design
 
-Wazuh single-node terlihat ringan di dokumentasi, tetapi dalam praktik:
+Wazuh single-node looks lightweight in the documentation, but in practice:
 
-- Container manager, indexer, dan dashboard memakai ±2–3,4 GB.
-- Linux memakai RAM kosong untuk page cache; `vmmemWSL` bisa mendekati batas WSL meski aplikasi hanya memakai sebagian.
-- Di host 16 GB, Windows baseline sudah ±8–10 GB. Menambahkan WSL 8 GB membuat total melebihi kapasitas fisik dan memicu paging.
+- The manager, indexer, and dashboard containers use ±2–3.4 GB.
+- Linux uses free RAM for page cache; `vmmemWSL` can approach the WSL limit even when applications use only part of it.
+- On a 16 GB host, the Windows baseline is already ±8–10 GB. Adding 8 GB for WSL pushes the total beyond physical capacity and triggers paging.
 
-Pelajaran:
+Lessons:
 
-- Rencanakan RAM untuk **host + VM/WSL + aplikasi**, bukan hanya aplikasi.
-- Pahami perbedaan `MemFree` dan `MemAvailable`; cache bukan kebocoran.
-- `autoMemoryReclaim=gradual` membantu, tetapi batas `memory=` adalah kontrol utama.
-- Untuk lab SIEM + Windows + browser, 32 GB RAM jauh lebih nyaman.
+- Plan RAM for **host + VM/WSL + applications**, not just applications.
+- Understand the difference between `MemFree` and `MemAvailable`; cache is not a leak.
+- `autoMemoryReclaim=gradual` helps, but the `memory=` limit is the main control.
+- For a SIEM + Windows + browser lab, 32 GB RAM is much more comfortable.
 
-### 1.2 Lokasi disk dan VHDX sangat penting
+### 1.2 Disk location and VHDX matter
 
-- C: yang hampir penuh membuat image Docker dan volume Wazuh tidak muat.
-- VHDX WSL di C: harus dipindah ke D: sebelum deploy.
-- Data Docker berada di dalam ext4 WSL; setelah VHDX dipindah, data ikut pindah.
-- Swap WSL default berada di C:; pindahkan dengan `swapFile` ke D:.
+- A nearly full C: prevented Docker images and Wazuh volumes from fitting.
+- The WSL VHDX on C: had to be moved to D: before deployment.
+- Docker data resides inside the WSL ext4; after the VHDX is moved, the data moves with it.
+- WSL swap defaults to C:; move it to D: via `swapFile`.
 
-Pelajaran: cek `df -h` dan lokasi VHDX **sebelum** pull image besar.
+Lesson: check `df -h` and the VHDX location **before** pulling large images.
 
-### 1.3 Docker Desktop vs Docker Engine native
+### 1.3 Docker Desktop vs native Docker Engine
 
-- Sisa konfigurasi Docker Desktop (`credsStore: desktop.exe`) menyebabkan pull gagal meski Docker Engine native sudah jalan.
-- Menghapus `credsStore` dari `~/.docker/config.json` menyelesaikan masalah.
-- Docker Engine native di WSL lebih ringan dan data-root-nya di ext4.
+- Leftover Docker Desktop configuration (`credsStore: desktop.exe`) caused pulls to fail even though native Docker Engine was running.
+- Removing `credsStore` from `~/.docker/config.json` resolved the problem.
+- Native Docker Engine in WSL is lighter and its data-root is on ext4.
 
-Pelajaran: bersihkan konfigurasi client lama saat berpindah runtime.
+Lesson: clean up old client configuration when switching runtimes.
 
-### 1.4 Bind mount dan ownership
+### 1.4 Bind mounts and ownership
 
-- Docker membuat folder bind mount yang belum ada sebagai `root:root` dengan permission ketat.
-- Generator certificate Wazuh gagal menulis ke folder tersebut.
-- Solusi: buat folder sebagai user sebelum menjalankan container, lalu regenerasi certificate.
+- Docker creates bind mount folders that do not yet exist as `root:root` with restrictive permissions.
+- The Wazuh certificate generator failed to write to that folder.
+- Solution: create the folder as a user before running the container, then regenerate certificates.
 
-Pelajaran: jangan biarkan Docker membuat direktori host yang akan ditulis container; siapkan path dan permission secara eksplisit.
+Lesson: do not let Docker create host directories that containers will write to; prepare paths and permissions explicitly.
 
-### 1.5 Urutan startup Wazuh
+### 1.5 Wazuh startup order
 
-- Indexer perlu waktu untuk siap; dashboard dapat timeout saat migrasi saved objects.
-- Timeout meninggalkan index `.kibana_1` setengah jadi dan dashboard menunggu selamanya.
-- Solusi: hapus `.kibana_1`, restart dashboard setelah indexer sehat.
+- The indexer needs time to become ready; the dashboard can time out during saved objects migration.
+- The timeout leaves a half-finished `.kibana_1` index and the dashboard waits forever.
+- Solution: delete `.kibana_1`, restart the dashboard after the indexer is healthy.
 
-Pelajaran: pada fresh install di I/O lambat, siapkan runbook untuk migrasi dashboard dan verifikasi cluster `green` sebelum mengakses UI.
+Lesson: on fresh installs with slow I/O, prepare a runbook for dashboard migration and verify the cluster is `green` before accessing the UI.
 
-### 1.6 Enrollment bukan koneksi
+### 1.6 Enrollment is not connection
 
-- Agent bisa terdaftar (`id 001`) tetapi berstatus `never_connected`.
-- Status itu berarti enrollment ke authd berhasil, tetapi agent belum mengirim keepalive ke remoted.
-- Setelah koneksi pertama, status berubah menjadi `active`.
+- An agent can be registered (`id 001`) but have the status `never_connected`.
+- That status means enrollment with authd succeeded, but the agent has not sent a keepalive to remoted.
+- After the first connection, the status changes to `active`.
 
-Pelajaran: bedakan **registered**, **connected**, dan **active**. Cek `lastKeepAlive`, port 1514, dan log agent.
+Lesson: distinguish **registered**, **connected**, and **active**. Check `lastKeepAlive`, port 1514, and agent logs.
 
-### 1.7 Telemetri bisa duplikat
+### 1.7 Telemetry can duplicate
 
-- Security 4688 dan Sysmon Event ID 1 sama-sama mencatat process creation.
-- Hasilnya dua alert untuk satu proses (67027 dan 92031/92032).
-- SCA dan error service Windows menambah volume besar.
+- Security 4688 and Sysmon Event ID 1 both record process creation.
+- The result is two alerts per process (67027 and 92031/92032).
+- SCA and Windows service errors add substantial volume.
 
-Pelajaran: desain telemetri harus mempertimbangkan coverage dan overlap. Pilih sumber utama, gunakan sumber lain sebagai fallback, dan tuning rule.
+Lesson: telemetry design must consider coverage and overlap. Choose a primary source, use others as fallback, and tune rules.
 
-### 1.8 FIM perlu pengujian yang tepat
+### 1.8 FIM needs proper testing
 
-- File yang dibuat lalu dihapus dalam hitungan detik bisa tidak tertangkap pada uji pertama.
-- FIM tetap terbukti bekerja melalui perubahan `C:\Windows\System32\Tasks` (rule 550).
-- Uji FIM sebaiknya memakai file yang bertahan beberapa menit dan path yang pasti dimonitor.
+- A file created and deleted within seconds may not be captured on the first test.
+- FIM is still proven to work via changes under `C:\Windows\System32\Tasks` (rule 550).
+- FIM tests should use files that persist for several minutes and paths that are definitely monitored.
 
-Pelajaran: kegagalan satu skenario uji tidak otomatis berarti fitur rusak; verifikasi dari beberapa sumber.
+Lesson: failure of one test scenario does not automatically mean the feature is broken; verify from multiple sources.
 
-### 1.9 Kegagalan service operasional bisa mendominasi alert
+### 1.9 Operational service failures can dominate alerts
 
-- `NvContainerLocalSystem` crash berulang karena plugin `NvPluginWatchdog` gagal inisialisasi (exit code 14109).
-- Windows Service Control Manager mencatat 7031/7023 dan melakukan recovery restart; Sysmon juga mencatat `net start NvContainerLocalSystem`.
-- Wazuh menerjemahkannya menjadi rule 61102, 61107, dan frequency rule 61110: 518 alert pada snapshot.
-- Tidak ada indikasi serangan; ini masalah driver/software NVIDIA (driver 546.01 pada Windows 11 build 26200).
+- `NvContainerLocalSystem` crashed repeatedly because the `NvPluginWatchdog` plugin failed to initialize (exit code 14109).
+- Windows Service Control Manager recorded 7031/7023 and performed recovery restarts; Sysmon also recorded `net start NvContainerLocalSystem`.
+- Wazuh translated this into rules 61102, 61107, and frequency rule 61110: 518 alerts in the snapshot.
+- There was no indication of attack; this was an NVIDIA driver/software issue (driver 546.01 on Windows 11 build 26200).
 
-Pelajaran: alert volume tinggi bisa berasal dari kegagalan operasional, bukan adversary. Root cause harus diperbaiki atau di-suppress secara spesifik—jangan mematikan seluruh kategori System error.
-
----
-
-## 2. Pelajaran SOC
-
-### 2.1 Alert bukan insiden
-
-- ±2.400 alert bukan berarti ±2.400 serangan, dan bukan berarti semuanya sudah ditriase.
-- Mayoritas adalah level 3–7: process creation, SCA compliance, error service.
-- Alert adalah sinyal; insiden adalah sinyal yang sudah divalidasi dan memiliki dampak.
-
-### 2.2 Severity bukan kebenaran
-
-- Rule 92213 level 15 menandai file `__PSScriptPolicyTest_*.ps1` yang dibuat PowerShell untuk uji execution policy.
-- Tanpa konteks (parent process, path, user, hash), alert level tinggi bisa menyesatkan.
-- Validasi konteks wajib sebelum eskalasi.
-
-### 2.3 Triage adalah proses, bukan tombol
-
-- Wazuh 4.x tidak punya status per-alert.
-- Status "baru" vs "sudah diproses" harus dilacak di case tracker eksternal.
-- Case harus memiliki owner, status, disposisi, bukti, dan tindakan.
-- SIEM lain (Splunk ES, Sentinel, Elastic, QRadar) menyediakan fitur ini native; Wazuh mengandalkan integrasi/ticketing.
-
-### 2.4 Deduplikasi dan agregasi
-
-- Satu kegagalan login adalah sinyal lemah; banyak kegagalan dari sumber yang sama dalam waktu singkat adalah sinyal kuat.
-- Gunakan frequency rule, `same_source_ip`, `same_user`, dan time window.
-- Satu case dapat mencakup banyak alert terkait.
-
-### 2.5 Alert fatigue harus dilawan dengan desain
-
-- Jangan hanya menurunkan level global; itu bisa membutakan deteksi.
-- Tuning per rule: suppression pola yang diketahui, filter noise, pisahkan compliance dari incident queue.
-- Ukur volume alert per rule dan waktu; rule teratas adalah kandidat tuning.
-
-### 2.6 Dokumentasi adalah deliverable
-
-- SOC Analyst harus bisa menjelaskan: apa yang terjadi, bukti apa, keputusan apa, tindakan apa.
-- Case yang baik dapat diaudit ulang.
-- Dokumentasi juga menjadi bukti portofolio: arsitektur, keputusan, kendala, dan hasil.
-
-### 2.7 Etika dan scope
-
-- Lab hanya pada perangkat sendiri.
-- Jangan deauth/scan jaringan orang lain.
-- Jangan ekspos dashboard/API ke internet tanpa hardening.
-- Simpan kredensial dan key agent dengan aman.
-
-### 2.8 Bedakan operational noise dari security signal
-
-- NVIDIA crash loop adalah **benign true positive**: alert benar-benar terjadi, tetapi bukan insiden keamanan.
-- Disposisi yang tepat: perbaiki service/driver atau suppress spesifik, bukan mengabaikan semua error System.
-- Dalam interview, kemampuan menjelaskan perbedaan ini menunjukkan maturity triage.
+Lesson: high alert volume can come from operational failures, not an adversary. Fix the root cause or suppress it specifically—do not turn off the entire System error category.
 
 ---
 
-## 3. Keputusan Desain dan Trade-off
+## 2. SOC Lessons
 
-| Keputusan | Alasan | Trade-off |
+### 2.1 An alert is not an incident
+
+- ±2,400 alerts does not mean ±2,400 attacks, nor does it mean all were triaged.
+- The majority are level 3–7: process creation, SCA compliance, service errors.
+- An alert is a signal; an incident is a validated signal with impact.
+
+### 2.2 Severity is not truth
+
+- Rule 92213 level 15 flags the `__PSScriptPolicyTest_*.ps1` file created by PowerShell to test execution policy.
+- Without context (parent process, path, user, hash), high-level alerts can be misleading.
+- Context validation is mandatory before escalation.
+
+### 2.3 Triage is a process, not a button
+
+- Wazuh 4.x has no per-alert status.
+- "New" vs "processed" status must be tracked in an external case tracker.
+- A case must have an owner, status, disposition, evidence, and action.
+- Other SIEMs (Splunk ES, Sentinel, Elastic, QRadar) provide this feature natively; Wazuh relies on integrations/ticketing.
+
+### 2.4 Deduplication and aggregation
+
+- One failed login is a weak signal; many failures from the same source in a short time is a strong signal.
+- Use frequency rules, `same_source_ip`, `same_user`, and time windows.
+- One case can cover many related alerts.
+
+### 2.5 Alert fatigue must be fought with design
+
+- Do not just lower levels globally; that can blind detection.
+- Tune per rule: suppress known patterns, filter noise, separate compliance from the incident queue.
+- Measure alert volume per rule and over time; the top rules are tuning candidates.
+
+### 2.6 Documentation is a deliverable
+
+- A SOC Analyst must be able to explain: what happened, what evidence, what decision, what action.
+- A good case can be audited again.
+- Documentation also serves as portfolio evidence: architecture, decisions, constraints, and results.
+
+### 2.7 Ethics and scope
+
+- Lab only on own devices.
+- Do not deauth/scan other people's networks.
+- Do not expose the dashboard/API to the internet without hardening.
+- Store credentials and agent keys securely.
+
+### 2.8 Distinguish operational noise from security signal
+
+- The NVIDIA crash loop is a **benign true positive**: the alert genuinely occurred, but it is not a security incident.
+- Correct disposition: fix the service/driver or suppress specifically, not ignore all System errors.
+- In an interview, the ability to explain this difference shows triage maturity.
+
+---
+
+## 3. Design Decisions and Trade-offs
+
+| Decision | Reason | Trade-off |
 |---|---|---|
-| WSL + Docker, bukan VM penuh | Tidak ada KVM; lebih ringan | Bukan isolasi sekuat VM; perilaku jaringan berbeda |
-| Wazuh single-node | Cukup untuk lab dan pembelajaran | Tidak ada HA/cluster |
-| 6 GB WSL | Host 16 GB, usage aktual ±3,4 GB | Di bawah rekomendasi resmi; risiko OOM |
-| Tanpa Kali | Ubuntu bisa menjalankan tools yang sama | Perlu install manual; tidak semua tool preinstalled |
-| Sysmon + 4688 | Coverage lebih besar | Duplikasi dan volume alert |
-| Enrollment tanpa password | Memudahkan lab lokal | Tidak aman jika port 1515 terekspos |
-| Dashboard di localhost | Mengurangi risiko eksposur | Tidak bisa diakses dari perangkat lain tanpa tunnel |
-| Case tracker eksternal | Wazuh tidak punya case management | Perlu disiplin dan tooling tambahan |
+| WSL + Docker, not full VMs | No KVM; lighter | Not as strong isolation as VMs; different network behavior |
+| Wazuh single-node | Sufficient for the lab and learning | No HA/cluster |
+| 6 GB WSL | 16 GB host, actual usage ±3.4 GB | Below the official recommendation; OOM risk |
+| No Kali | Ubuntu can run the same tools | Manual install needed; not all tools preinstalled |
+| Sysmon + 4688 | Greater coverage | Duplication and alert volume |
+| Enrollment without password | Simplifies the local lab | Insecure if port 1515 is exposed |
+| Dashboard on localhost | Reduces exposure risk | Cannot be accessed from other devices without a tunnel |
+| External case tracker | Wazuh has no case management | Requires discipline and additional tooling |
 
 ---
 
-## 4. Yang Akan Dilakukan Berbeda
+## 4. What I Would Do Differently
 
-1. Mulai dengan RAM 32 GB atau rencanakan WSL 6–8 GB sejak awal.
-2. Pindahkan VHDX dan swap sebelum install Docker/Wazuh.
-3. Rancang telemetri dan rule tuning sebelum mengaktifkan semua channel.
-4. Buat case tracker sejak hari pertama, bukan setelah alert menumpuk.
-5. Uji FIM dengan file yang bertahan lebih lama.
-6. Dokumentasikan setiap perubahan konfigurasi dan alasan.
-7. Siapkan backup/export sebelum eksperimen berisiko.
+1. Start with 32 GB RAM or plan 6–8 GB for WSL from the beginning.
+2. Move the VHDX and swap before installing Docker/Wazuh.
+3. Design telemetry and rule tuning before enabling all channels.
+4. Create the case tracker from day one, not after alerts pile up.
+5. Test FIM with longer-lived files.
+6. Document every configuration change and its rationale.
+7. Prepare backups/exports before risky experiments.
 
 ---
 
-## 5. Kompetensi SOC yang Dilatih
+## 5. SOC Competencies Practiced
 
-- **Log analysis:** membaca event Windows, Sysmon, dan alert Wazuh.
-- **Detection validation:** membuktikan event benar-benar masuk dan memicu rule.
-- **Triage:** membedakan true positive, false positive, benign, duplicate.
-- **Alert tuning:** suppression, filter, prioritas, pengurangan noise.
-- **Incident documentation:** case, bukti, disposisi, tindakan.
-- **Infrastructure:** WSL, Docker, networking localhost forwarding, resource tuning.
+- **Log analysis:** reading Windows events, Sysmon, and Wazuh alerts.
+- **Detection validation:** proving events actually arrive and trigger rules.
+- **Triage:** distinguishing true positive, false positive, benign, duplicate.
+- **Alert tuning:** suppression, filtering, prioritization, noise reduction.
+- **Incident documentation:** cases, evidence, disposition, action.
+- **Infrastructure:** WSL, Docker, localhost forwarding networking, resource tuning.
 - **Security hygiene:** default credentials, binding, enrollment, least privilege.
-- **Communication:** menjelaskan temuan dan keputusan secara ringkas.
+- **Communication:** explaining findings and decisions concisely.
 
 ---
 
-## 6. Kutipan Pelajaran untuk Interview
+## 6. Interview-Ready Lesson Quote
 
-> "Saya membangun lab Wazuh di laptop 16 GB dengan WSL dan Docker. Tantangan terbesarnya bukan memasang SIEM, tetapi membuat telemetri Windows, memvalidasi deteksi, dan menekan alert fatigue. Saya menemukan bahwa ribuan alert didominasi process creation dan SCA; satu alert level 15 ternyata false positive dari file uji PowerShell. Dari situ saya belajar bahwa triage membutuhkan konteks, case management, dan tuning—bukan hanya melihat severity."
+> "I built a Wazuh lab on a 16 GB laptop with WSL and Docker. The biggest challenge was not installing the SIEM, but getting Windows telemetry working, validating detections, and reducing alert fatigue. I found that thousands of alerts were dominated by process creation and SCA; one level 15 alert turned out to be a false positive from a PowerShell test file. From that I learned that triage requires context, case management, and tuning—not just looking at severity."

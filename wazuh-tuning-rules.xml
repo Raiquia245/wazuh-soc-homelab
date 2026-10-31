@@ -13,4 +13,10 @@
     <field name="win.eventdata.commandLine" type="pcre2">(?i)-m -bg</field>
     <description>Suppress benign PcaSvc sdbinst maintenance</description>
   </rule>
+
+  <rule id="100231" level="0">
+    <if_sid>554,550</if_sid>
+    <field name="syscheck.path" type="pcre2">(?i)/home/[^/]+/\.cache/</field>
+    <description>Suppress benign user cache file changes on login</description>
+  </rule>
 </group>
