@@ -2,7 +2,7 @@
 
 **Proyek:** Wazuh SIEM + SOC Home Lab  
 **Periode:** 25–26 Oktober 2026  
-**Status:** Fase 0–3 selesai; Fase 4A in progress; 4B–6 pending
+**Status:** Fase 0–4C selesai; Phase 5–6 pending
 
 > Jurnal kronologis lengkap: [06-LAB-JOURNAL.md](06-LAB-JOURNAL.md). Setiap aksi teknis dicatat di sana.
 
@@ -43,6 +43,9 @@
 | 2026-10-30 | 4A | Menjalankan DVWA | `docker compose --profile dvwa up -d` | `lab-dvwa` Up, `127.0.0.1:8080`, HTTP 302 | Selesai |
 | 2026-10-30 | 4B | Build Linux victim + Wazuh agent | `linux-victim/docker-compose.yml`, `Dockerfile` | `lab-linux-victim` Up, SSH 2222, agent **003 active** | Selesai |
 | 2026-10-30 | 4B | Uji SSH + auth log | `hydra -l labuser -p wrongpass ssh://127.0.0.1:2222` | auth.log tercatat; alert PAM 5503 | Selesai |
+| 2026-10-31 | 4C | Restart lab + rebuild agent | Docker/Wazuh, Linux victim, DVWA | Agent 004 active; DVWA/Linux victim up | Selesai |
+| 2026-10-31 | 4C | Uji FIM Linux | `touch /etc/lab-fim-test-2` | Rule 554 File added | Selesai |
+| 2026-10-31 | 4C | Uji SSH failed login | `sshpass`/hydra wrong password | Rule 5503 PAM login failed | Selesai |
 | 2026-10-26 | Dokumentasi | Report, tracking, lessons, template triage, perbandingan SIEM | Folder `docs/` | Dokumen dibuat | Selesai |
 
 ---
@@ -76,8 +79,9 @@
 - [x] Fase 4A: DVWA container berjalan di `127.0.0.1:8080`.
 - [ ] Fase 4A: install tools serangan di Ubuntu.
 - [ ] Fase 4A: Juice Shop.
-- [x] Fase 4B: Linux victim container + SSH + rsyslog + Wazuh agent 003 active.
-- [ ] Fase 4B: auditd (tidak didukung di container WSL; perlu distro/host terpisah).
+- [x] Fase 4B: Linux victim container + SSH + rsyslog + Wazuh agent.
+- [x] Fase 4C: FIM rule 554 dan SSH failed login PAM 5503 tervalidasi.
+- [ ] Fase 4C: auditd (tidak didukung di container WSL; perlu distro/host terpisah).
 - [ ] Filter/cleanup alert NVIDIA lama setelah screenshot.
 - [ ] Pisahkan SCA 19007/19008 ke compliance dashboard.
 - [ ] Putuskan suppress 67027 (duplikat 4688 vs Sysmon).
@@ -91,7 +95,7 @@
 ### Belum dimulai
 
 - [ ] Fase 4B: Linux victim/auditd (lanjutan).
-- [ ] Fase 5: attack → detect → triage → tuning.
+- [ ] Phase 5: attack → detect → triage → tuning.
 - [ ] Fase 6: ESP32 attacker/sensor + MQTT/syslog bridge.
 - [ ] NIDS Suricata/Zeek (opsional).
 - [ ] Upgrade RAM 2×16 GB.

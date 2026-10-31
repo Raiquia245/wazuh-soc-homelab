@@ -408,6 +408,20 @@ Jurnal kronologis seluruh tindakan teknis pada home lab. Setiap entri mencatat w
 - **Status:** Selesai
 - **Tindak lanjut:** Push update README.
 
+### 19:59 WIB — Restart lab + Phase 4C controlled tests
+
+- **Fase:** 4C — baseline/controlled tests
+- **Aksi:** Menyalakan ulang Docker/Wazuh/Linux victim/DVWA, memperbaiki duplicate agent, lalu menguji deteksi Linux.
+- **Hasil:**
+  - Docker dimulai via `wsl.exe -u root`; Wazuh dashboard HTTP 200.
+  - Agent 003 lama dihapus karena duplicate name; agent baru **004** active.
+  - Container `lab-linux-victim` dan `lab-dvwa` Up.
+  - FIM `/etc/lab-fim-test-2` → rule **554 File added**.
+  - SSH failed login → auth.log → rule **5503 PAM login failed**.
+  - tools nmap/hydra/sqlmap/nikto/ffuf/gobuster tersedia.
+- **Status:** Selesai
+- **Tindak lanjut:** Masuk Phase 5 — attack → detect → triage → tuning; auditd masih perlu distro/host terpisah.
+
 ---
 
 ## Template Entri

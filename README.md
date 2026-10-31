@@ -5,8 +5,8 @@ Lab keamanan defensif mandiri di laptop pribadi: Wazuh SIEM di WSL2/Docker, endp
 ## Status
 
 - Wazuh 4.14.9 single-node berjalan.
-- Agent Windows 001 dan Linux victim 003 `active`.
-- Phase 0–3 selesai; Phase 4A (DVWA) dan 4B (Linux victim) berjalan.
+- Agent Windows 001 dan Linux victim 004 `active`.
+- Phase 0–3, 4A (DVWA), 4B (Linux victim), dan 4C (controlled tests) selesai.
 - NVIDIA `NvContainerLocalSystem` crash loop sudah diperbaiki dengan driver 582.78.
 - Tuning sempit untuk noise 92213/92058; tidak ada suppression global.
 
