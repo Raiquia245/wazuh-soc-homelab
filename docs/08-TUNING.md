@@ -36,3 +36,10 @@
 - Alert lama tidak dihapus.
 - Tuning direview berkala; jangan menutupi deteksi baru.
 - Perubahan aturan dan hasil test dicatat di `06-LAB-JOURNAL.md`.
+
+## Observasi Phase 5A
+
+- SSH brute force terdeteksi sebagai **PAM 5503** dan **syslog 2502**, bukan rule sshd 5710/5712. Ini cukup untuk mendeteksi brute force, tetapi decoder bisa dituning jika ingin rule sshd standar.
+- FIM `/home/*/.cache` memunculkan noise saat login; pertimbangkan ignore khusus cache.
+- Sudo failure terdeteksi rule **5401**.
+- Web attack belum terdeteksi karena Apache log DVWA belum dikirim ke Wazuh; ini gap Phase 5B.

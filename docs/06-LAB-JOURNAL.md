@@ -422,6 +422,20 @@ Jurnal kronologis seluruh tindakan teknis pada home lab. Setiap entri mencatat w
 - **Status:** Selesai
 - **Tindak lanjut:** Masuk Phase 5 — attack → detect → triage → tuning; auditd masih perlu distro/host terpisah.
 
+### 20:45 WIB — Phase 5A attack/detect
+
+- **Fase:** 5A — attack, detect, triage
+- **Aksi:** Menjalankan serangan terkontrol ke Linux victim/DVWA dan memeriksa alert.
+- **Hasil:**
+  - SSH brute force 10 percobaan → rule **5503** dan **2502**.
+  - FIM `/etc/lab-phase5-fim` → rule **554**.
+  - Persistence `/etc/cron.d/lab-phase5` → rule **554/550**.
+  - Sudo failure → rule **5401**.
+  - Web scan nmap/nikto/ffuf ke DVWA berhasil, tetapi **tidak ada alert web** karena Apache log belum dikirim ke Wazuh.
+  - Artefak uji cron/FIM sudah dihapus.
+- **Status:** 5A selesai; 5B gap
+- **Tindak lanjut:** Kirim Apache access log DVWA via sidecar/agent, lalu uji SQLi/XSS dan triage.
+
 ---
 
 ## Template Entri

@@ -7,13 +7,13 @@ Dokumentasi portofolio lab keamanan defensif yang dijalankan sepenuhnya di lapto
 | Item | Nilai |
 |---|---|
 | Tanggal | 31 Oktober 2026 |
-| Fase selesai | Fase 0–3, 4A, 4B, 4C |
+| Fase selesai | Fase 0–3, 4A, 4B, 4C, 5A |
 | Host | Acer Nitro AN515-52, i5-8300H, 16 GB RAM, Windows 11 |
 | SIEM | Wazuh 4.14.9 (manager, indexer, dashboard) |
 | Endpoint | Windows 11 + Sysmon64 + agent 001; Linux victim agent 004 (sebelumnya 003) |
 | Status agent | `active` |
 | Telemetri tervalidasi | Security 4625, 4688, Sysmon ID 1, PowerShell 4104, FIM rule 550 |
-| Fase berikutnya | Phase 5 attack/detect/triage, ESP32 wireless lab |
+| Fase berikutnya | Phase 5B web log ingestion, triage/tuning, ESP32 |
 
 ## Dokumen
 
