@@ -351,7 +351,8 @@ Triage details and example cases are in `06-LAB-JOURNAL.md` and `triage-cases.cs
 ### Phase 5 — Attack → Detect → Triage (complete)
 
 - SSH brute force → rules 5503/2502; FIM persistence → 554/550; sudo failure → 5401.
-- DVWA scans → 31101/31151; SQLi → 31103; XSS → 31105; Nikto UA → 31508.
+- DVWA scans → 31101/31151; SQLi attempt → 31103; successful web attack (HTTP 200) → 31106; XSS → 31105; Nikto UA → 31508.
+- Successful UNION SQLi validation returned HTTP 200/5500 bytes with user/password data; Wazuh fired 31106. Response body is not parsed by Wazuh, so data-extraction proof comes from the application response.
 - Web tuning: 100230 was removed because it suppressed an authorized attack; 100231 remains for benign cache FIM.
 - MITRE ATT&CK and case documentation are included.
 

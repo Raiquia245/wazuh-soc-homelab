@@ -52,6 +52,7 @@
 | 2026-10-31 | 5A | DVWA web scan | nmap/nikto/ffuf | No web alerts; Apache log not yet shipped | Gap |
 | 2026-10-31 | 5B | Apache log pipeline | `dvwa-logs` volume + agent 005 sidecar | Web alerts 31101/31151/31103/31105 | Complete |
 | 2026-10-31 | 5C | Tune web scan noise | 100230 removed; 100231 kept | 31101 active 737 → 738; 31508/31103/31105 remain | Complete |
+| 2026-10-31 | 5C | Successful SQLi validation | DVWA setup/login low; UNION SELECT | HTTP 200/5500; users + hashes returned; rule 31106 | Complete |
 | 2026-10-26 | Documentation | Report, tracking, lessons, triage template, SIEM comparison | `docs/` folder | Documents created | Complete |
 
 ---

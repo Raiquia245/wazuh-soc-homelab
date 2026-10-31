@@ -486,6 +486,19 @@ Chronological journal of all technical actions in the home lab. Each entry recor
 - **Status:** Complete
 - **Follow-up:** Phase 6 ESP32 is optional/deferred; maintain and review the lab.
 
+### 23:45 WIB — Successful SQLi validation (DVWA)
+
+- **Phase:** 5C — validation
+- **Action:** Completed DVWA setup, logged in as admin, set security to low, and executed a UNION-based SQL injection.
+- **Payload:** `1' UNION SELECT user,password FROM users-- -`
+- **Result:**
+  - HTTP **200**, response size **5500 bytes** (previous attempts were 302/423).
+  - Returned users: `admin`, `gordonb`, `1337`, `pablo`, `smithy`, including password hashes.
+  - Wazuh rule **31106** "A web attack returned code 200 (success)" fired.
+  - Earlier 302 requests fired **31103** (attempt only).
+- **Status:** Complete
+- **Follow-up:** 31103 = attempt; 31106 = successful HTTP response. Wazuh does not parse the response body, so data-exfiltration proof requires the application response/DB logs.
+
 ---
 
 ## Entry Template

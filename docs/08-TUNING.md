@@ -58,3 +58,10 @@
 - `31101` remains active: a normal-UA 404 increased the count from **737 to 738**.
 - Nikto user-agent triggers **31508** (blacklisted user agent); SQLi keeps firing **31103**, XSS keeps firing **31105**, and **31151** aggregates repeated scan errors.
 - `100231` remains active only for benign `/home/*/.cache/` FIM noise.
+
+## SQLi Success Signal
+
+- `31103` = SQL injection attempt (request pattern; may be 302/400).
+- `31106` = web attack returned HTTP 200 (successful response).
+- A successful UNION SQLi returned HTTP 200 and user/password data; Wazuh fired 31106.
+- Wazuh does not inspect the response body; exfiltration proof requires application/DB logs.
