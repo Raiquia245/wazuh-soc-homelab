@@ -473,6 +473,19 @@ Chronological journal of all technical actions in the home lab. Each entry recor
 - **Status:** Complete
 - **Follow-up:** Phase 6 ESP32 (wireless/physical/IoT), then the final report.
 
+### 23:30 WIB — Project finalized
+
+- **Phase:** Finalization
+- **Action:** Closed the lab at Phase 5C and deferred Phase 6.
+- **Final state:**
+  - Wazuh 4.14.9, dashboard HTTP 200.
+  - Agents 001 (Windows), 004 (Linux victim), 005 (DVWA web) active.
+  - Linux detections: 5503/2502, 5401, 554/550.
+  - Web detections: 31101/31151, 31103, 31105, 31508.
+  - Tuning: 100211/100212/100231; 100230 removed to keep authorized attack alerts visible.
+- **Status:** Complete
+- **Follow-up:** Phase 6 ESP32 is optional/deferred; maintain and review the lab.
+
 ---
 
 ## Entry Template

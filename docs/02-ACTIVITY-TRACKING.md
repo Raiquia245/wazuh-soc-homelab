@@ -2,7 +2,7 @@
 
 **Project:** Wazuh SIEM + SOC Home Lab  
 **Period:** October 25–26, 2026  
-**Status:** Phases 0–5C complete; Phase 6 pending
+**Status:** Phases 0–5C complete; project finalized; Phase 6 deferred
 
 > Full chronological journal: [06-LAB-JOURNAL.md](06-LAB-JOURNAL.md). Every technical action is recorded there.
 
@@ -100,13 +100,12 @@
 - [ ] Disable demo indexer users.
 - [ ] Back up configuration and volumes.
 
-### Not started
+### Optional / deferred
 
-- [ ] Phase 4B: Linux victim/auditd (continued).
-- [ ] Phase 5: attack → detect → triage → tuning.
-- [ ] Phase 6: ESP32 attacker/sensor + MQTT/syslog bridge.
+- [ ] Phase 6 (optional/deferred): ESP32 attacker/sensor + MQTT/syslog bridge.
 - [ ] NIDS Suricata/Zeek (optional).
 - [ ] RAM upgrade 2×16 GB.
+- [ ] auditd on a second WSL distro or separate host.
 
 ---
 
@@ -235,5 +234,5 @@ Medium priority:
 Long-term priority:
 
 9. Targeted attacks + purple team loop.
-10. ESP32 attacker/sensor.
+10. Phase 6 (optional/deferred): ESP32 attacker/sensor.
 11. 32 GB RAM upgrade.

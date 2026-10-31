@@ -7,13 +7,13 @@ Portfolio documentation for a self-hosted defensive security lab built on a pers
 | Item | Value |
 |---|---|
 | Date | 31 October 2026 |
-| Completed phases | 0–3, 4A, 4B, 4C, 5A, 5B |
+| Completed phases | 0–3, 4A, 4B, 4C, 5A, 5B, 5C |
 | Host | Acer Nitro AN515-52, i5-8300H, 16 GB RAM, Windows 11 |
 | SIEM | Wazuh 4.14.9 (manager, indexer, dashboard) |
 | Endpoints | Windows 11 agent 001; Linux victim agent 004; DVWA web agent 005 |
 | Agent status | `active` |
 | Validated telemetry | Security 4625/4688, Sysmon ID 1, PowerShell 4104, FIM 550/554, SSH PAM 5503/2502, sudo 5401, web 31101/31151/31103/31105 |
-| Next | Phase 5C triage/tuning, ESP32 wireless lab |
+| Project status | Finalized; Phase 6 (ESP32) optional/deferred |
 
 ## Documents
 

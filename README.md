@@ -7,7 +7,7 @@ A self-hosted defensive security lab running on a personal laptop: Wazuh SIEM in
 - Wazuh 4.14.9 single-node stack is running.
 - Active agents: Windows `001`, Linux victim `004`, DVWA web `005`.
 - Completed: Phases 0–3, 4A, 4B, 4C, 5A, 5B, and 5C.
-- Next: Phase 6 ESP32 wireless/physical/IoT lab.
+- Project finalized; Phase 6 (ESP32 wireless/physical/IoT) is optional and deferred.
 - NVIDIA `NvContainerLocalSystem` crash loop was resolved by updating the driver to 582.78.
 - Tuning is intentionally narrow (92213/92058); no global suppression.
 

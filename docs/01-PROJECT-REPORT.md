@@ -3,7 +3,7 @@
 **Project:** Virtual Home Lab + Wazuh SIEM on a Personal Laptop  
 **Author:** Valdez Bentiraz  
 **Date:** October 26, 2026  
-**Status:** Phases 0–3 complete; Phases 4–6 planned  
+**Status:** Phases 0–5C complete; project finalized; Phase 6 optional/deferred  
 **Environment:** Acer Nitro AN515-52, Windows 11, WSL2 Ubuntu 22.04, Docker, Wazuh 4.14.9
 
 ---
@@ -107,9 +107,9 @@ Network notes:
 | 1 | Install native Docker Engine + Compose | Complete |
 | 2 | Deploy Wazuh single-node 4.14.9 | Complete |
 | 3 | Sysmon + Wazuh agent + audit policy + event validation | Complete |
-| 4 | Victim container + attack tools + Linux victim/auditd | Not started |
-| 5 | Attack → detect → triage → tuning cycle | Not started |
-| 6 | ESP32 wireless attacker/sensor + log bridge | Not started |
+| 4 | Victim containers + attack tools + Linux victim; SWEB log pipeline | Complete (auditd limited) |
+| 5 | Attack → detect → triage → tuning cycle | Complete |
+| 6 | ESP32 wireless attacker/sensor + log bridge | Optional / deferred |
 | 7 | Credential hardening, backup, retention, final portfolio | Partial |
 
 ---
@@ -325,7 +325,7 @@ Triage details and example cases are in `06-LAB-JOURNAL.md` and `triage-cases.cs
 - WSL2 is not identical to a production server; network and I/O behavior differ.
 - No NIDS (Suricata/Zeek), no Linux victim, no ESP32 yet.
 - Alert volume is still high; tuning is only partial.
-- Documentation does not yet include screenshots; see the evidence checklist.
+- Screenshots are available in `docs/screenshots/` (redacted for privacy).
 
 ---
 
@@ -334,34 +334,32 @@ Triage details and example cases are in `06-LAB-JOURNAL.md` and `triage-cases.cs
 ### Short term
 
 1. Alert tuning:
-   - Suppress 92213 for the `__PSScriptPolicyTest_*` pattern.
-   - Filter 61110/NVIDIA from the incident queue.
-   - Separate SCA 19007/19008 into a compliance dashboard.
+   - Keep 92213 PowerShell policy-test alerts visible; only narrow 92213 for the verified VS Setup Service pattern.
+   - Keep NVIDIA service alerts active; the crash loop was fixed with driver 582.78.
+   - Separate SCA 19007/19008 into a compliance view.
    - Decide between 67027 vs Sysmon to reduce duplication.
-2. Create a case tracker (CSV/Notion/Jira).
+2. Use the case tracker (`triage-cases.csv`).
 3. Re-validate FIM with a longer-lived file.
 
-### Phase 4 — Victim and Attack Tools (4A in progress)
+### Phase 4 — Victim and Attack Tools (complete)
 
-- **DVWA** running at `127.0.0.1:8080` (HTTP 302 to setup/login), container `lab-dvwa`.
-- OWASP Juice Shop: compose ready, run alternately due to RAM.
-- Tools in Ubuntu: nmap, hydra, sqlmap, nikto, ffuf, gobuster, impacket, netexec.
-- Metasploit run on-demand via container.
-- Linux victim + SSH + auditd + Wazuh agent 002 in 4B.
+- **DVWA** runs at `127.0.0.1:8080`; Apache logs are forwarded by sidecar agent 005.
+- Linux victim runs at `127.0.0.1:2222` with sshd, rsyslog, FIM, and agent 004.
+- Tools: nmap, hydra, sqlmap, nikto, ffuf, gobuster, impacket, netexec; Metasploit on demand.
+- `auditd` is not usable inside the WSL container; a second WSL distro or separate host is required.
 
-### Phase 5 — Attack → Detect → Triage
+### Phase 5 — Attack → Detect → Triage (complete)
 
-- Nmap scan, failed login/brute force, web injection, persistence, credential access.
-- Atomic Red Team for repeatable ATT&CK techniques.
-- Rule validation, triage, tuning, and case documentation.
-- MITRE ATT&CK dashboard and alert metrics.
+- SSH brute force → rules 5503/2502; FIM persistence → 554/550; sudo failure → 5401.
+- DVWA scans → 31101/31151; SQLi → 31103; XSS → 31105; Nikto UA → 31508.
+- Web tuning: 100230 was removed because it suppressed an authorized attack; 100231 remains for benign cache FIM.
+- MITRE ATT&CK and case documentation are included.
 
-### Phase 6 — ESP32
+### Phase 6 — ESP32 (optional/deferred)
 
-- ESP32 attacker (deauth/evil portal) on my own AP.
-- ESP32 promiscuous sensor → MQTT/syslog → Wazuh custom rule.
-- BLE HID/BadUSB to test endpoint visibility.
-- IoT telemetry (DHT/MQTT) for an IT/OT demo.
+- Would add wireless deauth/evil-twin/rogue-AP simulation, BLE HID/BadUSB, and IoT MQTT telemetry.
+- Wazuh does not natively parse 802.11 frames; this phase would require an ESP32 sensor and MQTT/syslog bridge.
+- Deferred because the host/OS/web lab already covers the core SOC workflow.
 
 ### Hardening
 
