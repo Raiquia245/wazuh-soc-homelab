@@ -1,0 +1,22 @@
+services:
+  dvwa:
+    image: vulnerables/web-dvwa
+    container_name: lab-dvwa
+    profiles: ["dvwa"]
+    ports:
+      - "127.0.0.1:8080:80"
+    restart: unless-stopped
+    mem_limit: 768m
+
+  juice-shop:
+    image: bkimminich/juice-shop
+    container_name: lab-juice-shop
+    profiles: ["juice"]
+    ports:
+      - "127.0.0.1:3000:3000"
+    restart: unless-stopped
+    mem_limit: 512m
+
+networks:
+  default:
+    name: lab-victims

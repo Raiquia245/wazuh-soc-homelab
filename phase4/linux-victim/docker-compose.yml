@@ -1,0 +1,22 @@
+services:
+  linux-victim:
+    build: .
+    container_name: lab-linux-victim
+    hostname: linux-victim
+    ports:
+      - "127.0.0.1:2222:22"
+    privileged: true
+    security_opt:
+      - apparmor:unconfined
+    restart: unless-stopped
+    mem_limit: 512m
+    environment:
+      LAB_USER_PASSWORD: ${LAB_USER_PASSWORD:?set LAB_USER_PASSWORD in .env}
+      LAB_ADMIN_PASSWORD: ${LAB_ADMIN_PASSWORD:?set LAB_ADMIN_PASSWORD in .env}
+    networks:
+      - wazuh
+
+networks:
+  wazuh:
+    external: true
+    name: single-node_default

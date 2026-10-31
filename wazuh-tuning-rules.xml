@@ -1,0 +1,16 @@
+<group name="local,windows,">
+  <rule id="100211" level="0">
+    <if_sid>92213</if_sid>
+    <field name="win.eventdata.image" type="pcre2">(?i)Microsoft\\VisualStudio\\Installer\\resources\\app\\ServiceHub\\Services\\Microsoft\.VisualStudio\.Setup\.Service\\BackgroundDownload\.exe$</field>
+    <field name="win.eventdata.targetFilename" type="pcre2">(?i)\\AppData\\Local\\Temp\\</field>
+    <description>Suppress benign Visual Studio Setup Service temp downloads</description>
+  </rule>
+
+  <rule id="100212" level="0">
+    <if_sid>92058</if_sid>
+    <field name="win.eventdata.image" type="pcre2">(?i)\\System32\\sdbinst\.exe$</field>
+    <field name="win.eventdata.parentCommandLine" type="pcre2">(?i)-s PcaSvc</field>
+    <field name="win.eventdata.commandLine" type="pcre2">(?i)-m -bg</field>
+    <description>Suppress benign PcaSvc sdbinst maintenance</description>
+  </rule>
+</group>

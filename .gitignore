@@ -1,0 +1,21 @@
+# Secrets / local-only
+.env
+*.env
+!.env.example
+*.pem
+*.key
+client.keys
+
+# Raw screenshots with PII (kept outside the repo)
+docs/screenshots/original/
+private/
+*.bak
+
+# Logs / build artifacts
+*.log
+phase4/**/*.log
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.vscode/
