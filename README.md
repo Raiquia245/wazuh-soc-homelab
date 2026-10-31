@@ -10,6 +10,22 @@ Lab keamanan defensif mandiri di laptop pribadi: Wazuh SIEM di WSL2/Docker, endp
 - NVIDIA `NvContainerLocalSystem` crash loop sudah diperbaiki dengan driver 582.78.
 - Tuning sempit untuk noise 92213/92058; tidak ada suppression global.
 
+## Screenshots
+
+> Screenshot sudah diredaksi untuk menghapus hostname, username, dan API ID.
+
+### Dashboard overview
+![Dashboard overview](docs/screenshots/dashboard.png)
+
+### Agents active
+![Agents active](docs/screenshots/agents-active.png)
+
+### Sysmon process telemetry
+![Sysmon process telemetry](docs/screenshots/sysmon-process.png)
+
+### Linux file integrity monitoring
+![Linux FIM](docs/screenshots/linux-fim.png)
+
 ## Dokumentasi
 
 - [docs/README.md](docs/README.md) — indeks dokumentasi.
