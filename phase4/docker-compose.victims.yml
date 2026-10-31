@@ -7,6 +7,23 @@ services:
       - "127.0.0.1:8080:80"
     restart: unless-stopped
     mem_limit: 768m
+    volumes:
+      - dvwa-logs:/var/log/apache2
+
+  dvwa-agent:
+    build: ./dvwa-agent
+    container_name: lab-dvwa-agent
+    hostname: dvwa-web
+    profiles: ["dvwa"]
+    restart: unless-stopped
+    mem_limit: 256m
+    depends_on:
+      - dvwa
+    volumes:
+      - dvwa-logs:/logs:ro
+    networks:
+      - default
+      - wazuh
 
   juice-shop:
     image: bkimminich/juice-shop
@@ -17,6 +34,12 @@ services:
     restart: unless-stopped
     mem_limit: 512m
 
+volumes:
+  dvwa-logs:
+
 networks:
   default:
     name: lab-victims
+  wazuh:
+    external: true
+    name: single-node_default

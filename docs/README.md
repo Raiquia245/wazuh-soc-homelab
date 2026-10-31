@@ -1,38 +1,39 @@
 # Home Lab SIEM & SOC — Wazuh on WSL2
 
-Dokumentasi portofolio lab keamanan defensif yang dijalankan sepenuhnya di laptop sendiri: Wazuh SIEM, Windows endpoint telemetry (Sysmon + Wazuh agent), WSL2, dan Docker.
+Portfolio documentation for a self-hosted defensive security lab built on a personal laptop: Wazuh SIEM, Windows endpoint telemetry (Sysmon + Wazuh agent), WSL2, Docker, a Linux victim, and a DVWA web target with Apache log forwarding.
 
 ## Status
 
-| Item | Nilai |
+| Item | Value |
 |---|---|
-| Tanggal | 31 Oktober 2026 |
-| Fase selesai | Fase 0–3, 4A, 4B, 4C, 5A |
+| Date | 31 October 2026 |
+| Completed phases | 0–3, 4A, 4B, 4C, 5A, 5B |
 | Host | Acer Nitro AN515-52, i5-8300H, 16 GB RAM, Windows 11 |
 | SIEM | Wazuh 4.14.9 (manager, indexer, dashboard) |
-| Endpoint | Windows 11 + Sysmon64 + agent 001; Linux victim agent 004 (sebelumnya 003) |
-| Status agent | `active` |
-| Telemetri tervalidasi | Security 4625, 4688, Sysmon ID 1, PowerShell 4104, FIM rule 550 |
-| Fase berikutnya | Phase 5B web log ingestion, triage/tuning, ESP32 |
+| Endpoints | Windows 11 agent 001; Linux victim agent 004; DVWA web agent 005 |
+| Agent status | `active` |
+| Validated telemetry | Security 4625/4688, Sysmon ID 1, PowerShell 4104, FIM 550/554, SSH PAM 5503/2502, sudo 5401, web 31101/31151/31103/31105 |
+| Next | Phase 5C triage/tuning, ESP32 wireless lab |
 
-## Dokumen
+## Documents
 
-| File | Isi |
+| File | Content |
 |---|---|
-| [01-PROJECT-REPORT.md](01-PROJECT-REPORT.md) | Laporan lengkap: tujuan, arsitektur, implementasi, validasi, analisis alert, kendala, keamanan, roadmap |
-| [02-ACTIVITY-TRACKING.md](02-ACTIVITY-TRACKING.md) | Log kronologis, checklist, open issues, command references |
-| [03-LESSONS-LEARNED.md](03-LESSONS-LEARNED.md) | Pelajaran teknis dan SOC yang didapat |
-| [06-LAB-JOURNAL.md](06-LAB-JOURNAL.md) | Jurnal kronologis setiap aksi teknis |
-| [NVIDIA-ISSUE-BRIEF.md](NVIDIA-ISSUE-BRIEF.md) | Brief handoff masalah NvContainer + bukti untuk second opinion |
-| [08-TUNING.md](08-TUNING.md) | Catatan rule tuning 92213/92058, risiko, dan status penerapan |
-| [triage-cases.csv](triage-cases.csv) | Template case tracker |
+| [01-PROJECT-REPORT.md](01-PROJECT-REPORT.md) | Full report: goals, architecture, implementation, validation, alert analysis, issues, security, roadmap |
+| [02-ACTIVITY-TRACKING.md](02-ACTIVITY-TRACKING.md) | Chronological log, checklist, open issues, command reference |
+| [03-LESSONS-LEARNED.md](03-LESSONS-LEARNED.md) | Technical and SOC lessons learned |
+| [06-LAB-JOURNAL.md](06-LAB-JOURNAL.md) | Chronological lab journal |
+| [NVIDIA-ISSUE-BRIEF.md](NVIDIA-ISSUE-BRIEF.md) | NVIDIA NvContainer incident brief and evidence |
+| [08-TUNING.md](08-TUNING.md) | Tuning rules, risk analysis, and application status |
+| [triage-cases.csv](triage-cases.csv) | Case tracker template |
 
-## Kebijakan Jurnal
+## Journaling Policy
 
-Setiap tindakan teknis (instalasi, perubahan konfigurasi, troubleshooting, pengujian) dicatat di [06-LAB-JOURNAL.md](06-LAB-JOURNAL.md). Ringkasan checklist ada di [02-ACTIVITY-TRACKING.md](02-ACTIVITY-TRACKING.md).
+Every technical action (installation, configuration change, troubleshooting, testing) is recorded in [06-LAB-JOURNAL.md](06-LAB-JOURNAL.md). The checklist summary is in [02-ACTIVITY-TRACKING.md](02-ACTIVITY-TRACKING.md).
 
-## Catatan
+## Notes
 
-- Semua pengujian dilakukan pada perangkat sendiri dan tidak menyentuh jaringan pihak lain.
-- Kredensial default lab sengaja **tidak ditulis** di dokumen portofolio ini. Nilainya ada di konfigurasi lokal (`~/wazuh-lab/...`) dan harus dirotasi sebelum diekspos.
-- Lab berjalan dengan WSL 6 GB / 4 vCPU; ini trade-off karena host hanya 16 GB. Lihat bagian batasan di laporan.
+- All testing is performed on hardware owned by the author.
+- Lab credentials are not published; local values are stored in a gitignored `.env`.
+- The WSL instance runs with 6 GB RAM / 4 vCPU because the host has 16 GB.
+- Detailed report, tracking, journal, and lessons documents are still in Indonesian; the public README and this index are in English.

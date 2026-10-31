@@ -2,7 +2,7 @@
 
 **Proyek:** Wazuh SIEM + SOC Home Lab  
 **Periode:** 25–26 Oktober 2026  
-**Status:** Fase 0–5A selesai; Phase 5B–6 pending
+**Status:** Fase 0–5B selesai; Phase 5C–6 pending
 
 > Jurnal kronologis lengkap: [06-LAB-JOURNAL.md](06-LAB-JOURNAL.md). Setiap aksi teknis dicatat di sana.
 
@@ -50,6 +50,7 @@
 | 2026-10-31 | 5A | FIM persistence cron | `/etc/cron.d/lab-phase5` | Rules 554/550 | Selesai |
 | 2026-10-31 | 5A | Sudo failure | SSH admin + wrong sudo password | Rule 5401 | Selesai |
 | 2026-10-31 | 5A | Web scan DVWA | nmap/nikto/ffuf | Tidak ada alert web; Apache log belum dikirim | Gap |
+| 2026-10-31 | 5B | Apache log pipeline | `dvwa-logs` volume + sidecar agent 005 | Web alerts 31101/31151/31103/31105 | Selesai |
 | 2026-10-26 | Dokumentasi | Report, tracking, lessons, template triage, perbandingan SIEM | Folder `docs/` | Dokumen dibuat | Selesai |
 
 ---
@@ -86,7 +87,7 @@
 - [x] Fase 4B: Linux victim container + SSH + rsyslog + Wazuh agent.
 - [x] Fase 4C: FIM rule 554 dan SSH failed login PAM 5503 tervalidasi.
 - [x] Phase 5A: SSH brute force, FIM persistence, sudo failure tervalidasi.
-- [ ] Phase 5B: kirim Apache log DVWA ke Wazuh dan validasi web alert.
+- [x] Phase 5B: Apache log DVWA terkirim ke Wazuh; SQLi/XSS/scan alert tervalidasi.
 - [ ] Fase 4C: auditd (tidak didukung di container WSL; perlu distro/host terpisah).
 - [ ] Filter/cleanup alert NVIDIA lama setelah screenshot.
 - [ ] Pisahkan SCA 19007/19008 ke compliance dashboard.

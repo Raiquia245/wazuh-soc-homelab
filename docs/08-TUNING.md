@@ -43,3 +43,10 @@
 - FIM `/home/*/.cache` memunculkan noise saat login; pertimbangkan ignore khusus cache.
 - Sudo failure terdeteksi rule **5401**.
 - Web attack belum terdeteksi karena Apache log DVWA belum dikirim ke Wazuh; ini gap Phase 5B.
+
+## Phase 5B Web Pipeline
+
+- Apache logs are shipped by sidecar agent 005 from a shared Docker volume.
+- Scan activity generates many 31101 alerts; rule 31151 aggregates repeated 400 errors.
+- SQLi (31103) and XSS (31105) must not be suppressed.
+- Tuning direction: aggregate/filter scanner noise by source IP/time window, not by disabling web rules.

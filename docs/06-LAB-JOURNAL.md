@@ -436,6 +436,29 @@ Jurnal kronologis seluruh tindakan teknis pada home lab. Setiap entri mencatat w
 - **Status:** 5A selesai; 5B gap
 - **Tindak lanjut:** Kirim Apache access log DVWA via sidecar/agent, lalu uji SQLi/XSS dan triage.
 
+### 22:55 WIB — Phase 5B Apache log pipeline
+
+- **Fase:** 5B — web log ingestion
+- **Aksi:** Mengirim Apache access/error log DVWA ke Wazuh melalui sidecar Wazuh agent.
+- **Artefak:**
+  - `phase4/dvwa-agent/Dockerfile`
+  - `phase4/dvwa-agent/ossec.conf`
+  - `phase4/dvwa-agent/entrypoint.sh`
+  - `phase4/docker-compose.victims.yml`
+- **Teknis:**
+  - DVWA menulis `/var/log/apache2` ke named volume `dvwa-logs`.
+  - Sidecar `lab-dvwa-agent` (agent 005 `dvwa-web`) mount volume read-only ke `/logs`.
+  - Agent mengirim log ke `wazuh.manager:1514` via network `single-node_default`.
+  - Wazuh decoder Apache + rules web memproses access log.
+- **Hasil:**
+  - Agent 005 `active`.
+  - Nikto scan → rules **31101** dan **31151**.
+  - SQLi `UNION SELECT` → rule **31103**.
+  - XSS `<script>` → rule **31105**.
+  - Total >1.000 alert web dari scan; perlu triage/tuning.
+- **Status:** Selesai
+- **Tindak lanjut:** Phase 5C — agregasi/tuning alert web, triage case, lanjut ESP32.
+
 ---
 
 ## Template Entri
