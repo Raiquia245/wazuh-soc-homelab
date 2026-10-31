@@ -1,7 +1,7 @@
 # Home Lab Activity Tracking
 
 **Project:** Wazuh SIEM + SOC Home Lab  
-**Period:** October 25–26, 2026  
+**Period:** October 25–31, 2026  
 **Status:** Phases 0–5C complete; project finalized; Phase 6 deferred
 
 > Full chronological journal: [06-LAB-JOURNAL.md](06-LAB-JOURNAL.md). Every technical action is recorded there.

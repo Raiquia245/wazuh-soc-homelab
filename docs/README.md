@@ -36,4 +36,4 @@ Every technical action (installation, configuration change, troubleshooting, tes
 - All testing is performed on hardware owned by the author.
 - Lab credentials are not published; local values are stored in a gitignored `.env`.
 - The WSL instance runs with 6 GB RAM / 4 vCPU because the host has 16 GB.
-- Detailed report, tracking, journal, and lessons documents are still in Indonesian; the public README and this index are in English.
+- All core project documents are in English.

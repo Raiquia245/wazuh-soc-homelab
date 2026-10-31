@@ -227,6 +227,8 @@ Snapshot October 26, 2026 ±12:42 WIB:
 - Agent 000 (manager): 219 alerts.
 - Total approximately 2,400 alerts, mostly low level.
 
+This figure represents the indexed alert volume, not the number of alerts fully triaged.
+
 **Important clarification:** this number is the **alert volume indexed**, not the number of alerts that have been triaged. Actual triage was performed only on a representative sample: 4625/60122, 92213, 92058, FIM 550, and 61102/61107 NVIDIA. Other low-level alerts have not been triaged individually.
 
 Level distribution (snapshot):

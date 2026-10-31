@@ -37,7 +37,7 @@ WSL2 Ubuntu (Docker) ───────────────────�
 | Linux SSH | Failed password / PAM | 5503, 2502 |
 | Linux sudo | Failed sudo attempt | 5401 |
 | Linux FIM | File added/changed | 554/550 |
-| Web (DVWA) | Web scan, SQLi, XSS | 31101, 31151, 31103, 31105 |
+| Web (DVWA) | Web scan, SQLi attempt/success, XSS | 31101, 31151, 31103, 31106, 31105 |
 
 ## Screenshots
 
@@ -54,6 +54,14 @@ WSL2 Ubuntu (Docker) ───────────────────�
 
 ### Linux file integrity monitoring
 ![Linux FIM](docs/screenshots/linux-fim.png)
+
+### Successful SQL injection (DVWA)
+![Successful SQL injection](docs/screenshots/dvwa-sqlisuccess.png)
+
+> `31103` indicates an SQL injection attempt; `31106` indicates the web attack returned HTTP 200. Wazuh does not parse the response body.
+
+### Web scan detection
+![Nikto web scan](docs/screenshots/nikto-webscan.png)
 
 ## Documentation
 
