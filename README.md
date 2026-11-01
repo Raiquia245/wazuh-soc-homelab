@@ -80,7 +80,7 @@ WSL2 Ubuntu (Docker) ───────────────────�
 | `scripts/phase3-ossec.conf` | Wazuh agent configuration |
 | `scripts/phase3-verify.sh` | Verify agents, indices, and recent alerts; requires `WAZUH_API_PASSWORD` and `WAZUH_ADMIN_PASSWORD` |
 | `rules/wazuh-tuning-rules.xml` | Narrow tuning rules |
-| `phase4/` | DVWA, Linux victim, Apache log sidecar agent |
+| `victims/` | DVWA, Linux victim, Apache log sidecar agent |
 
 ## Documentation
 
@@ -104,7 +104,7 @@ WSL2 Ubuntu (Docker) ───────────────────�
 ```text
 home-lab/
 ├─ docs/                 # reports, tracking, journal, redacted screenshots
-├─ phase4/               # DVWA, Linux victim, web log agent
+├─ victims/               # DVWA, Linux victim, web log agent
 ├─ scripts/              # phase0-3 setup and verification
 └─ rules/                # Wazuh tuning rules
 ```

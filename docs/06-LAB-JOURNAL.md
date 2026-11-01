@@ -3,7 +3,7 @@
 Chronological journal of all technical actions in the home lab. Each entry records the time, action, commands/artifacts, results, and status. Credentials and keys are not written here.
 
 
-> Note: some tutorial files referenced in older entries (`04`, `05`, `07`, `SCREENSHOT-GUIDE`, `phase4/README`) have been deleted. Those references are history, not active files.
+> Note: some tutorial files referenced in older entries (`04`, `05`, `07`, `SCREENSHOT-GUIDE`, the old phase4 README) have been deleted. Those references are history, not active files.
 
 ## Logging Policy
 
@@ -326,9 +326,9 @@ Chronological journal of all technical actions in the home lab. Each entry recor
 - **Phase:** 4A — Victim container
 - **Action:** Prepared the victim compose and ran DVWA.
 - **Artifacts:**
-  - `home-lab/phase4/docker-compose.victims.yml`
-  - `home-lab/phase4/install-tools.sh`
-  - `home-lab/phase4/README.md`
+  - `home-lab/victims/docker-compose.victims.yml`
+  - `home-lab/victims/install-tools.sh`
+  - `home-lab/victims/README.md`
 - **Results:**
   - Image `vulnerables/web-dvwa` (935 MB) pulled successfully.
   - Container `lab-dvwa` Up; port `127.0.0.1:8080->80`.
@@ -336,13 +336,13 @@ Chronological journal of all technical actions in the home lab. Each entry recor
   - WSL RAM 3.1 Gi of 5.8 Gi; ±2.5 Gi still available.
   - Attack tools not installed yet (requires sudo).
 - **Status:** Partial (4A target running; tools pending)
-- **Follow-up:** Run `phase4/install-tools.sh`, set up DVWA, then do an initial scan.
+- **Follow-up:** Run `victims/install-tools.sh`, set up DVWA, then do an initial scan.
 
 ### 01:40 WIB — Detection and availability documentation
 
 - **Phase:** 4A / 4B planning
 - **Action:** Explained the web/Linux detection pipeline, agent behavior when the manager is down, and Linux victim options.
-- **Artifacts:** `phase4/README.md` section "Attack Detection & Availability".
+- **Artifacts:** `victims/README.md` section "Attack Detection & Availability".
 - **Results:**
   - Wazuh + agent in WSL stop when WSL shuts down.
   - Agents on other hosts still buffer to a limited extent; not a local SIEM.
@@ -368,11 +368,11 @@ Chronological journal of all technical actions in the home lab. Each entry recor
 - **Phase:** 4B — Linux victim
 - **Action:** Built the Ubuntu victim container, sshd, rsyslog, Wazuh agent; enrolled it with the manager.
 - **Artifacts:**
-  - `phase4/linux-victim/Dockerfile`
-  - `phase4/linux-victim/docker-compose.yml`
-  - `phase4/linux-victim/ossec.conf`
-  - `phase4/linux-victim/entrypoint.sh`
-  - `phase4/linux-victim/lab.rules`
+  - `victims/linux-victim/Dockerfile`
+  - `victims/linux-victim/docker-compose.yml`
+  - `victims/linux-victim/ossec.conf`
+  - `victims/linux-victim/entrypoint.sh`
+  - `victims/linux-victim/lab.rules`
 - **Results:**
   - Agent 002 was removed during the rebuild; the new agent received **ID 003** (Wazuh does not reuse IDs).
   - Agent 003 `linux-victim` **active**.
@@ -441,10 +441,10 @@ Chronological journal of all technical actions in the home lab. Each entry recor
 - **Phase:** 5B — web log ingestion
 - **Action:** Shipped DVWA Apache access/error logs to Wazuh via a Wazuh agent sidecar.
 - **Artifacts:**
-  - `phase4/dvwa-agent/Dockerfile`
-  - `phase4/dvwa-agent/ossec.conf`
-  - `phase4/dvwa-agent/entrypoint.sh`
-  - `phase4/docker-compose.victims.yml`
+  - `victims/dvwa-agent/Dockerfile`
+  - `victims/dvwa-agent/ossec.conf`
+  - `victims/dvwa-agent/entrypoint.sh`
+  - `victims/docker-compose.victims.yml`
 - **Technical details:**
   - DVWA writes `/var/log/apache2` to the named volume `dvwa-logs`.
   - Sidecar `lab-dvwa-agent` (agent 005 `dvwa-web`) mounts the volume read-only at `/logs`.

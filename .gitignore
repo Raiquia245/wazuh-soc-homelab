@@ -13,7 +13,7 @@ private/
 
 # Logs / build artifacts
 *.log
-phase4/**/*.log
+victims/**/*.log
 
 # OS/editor
 .DS_Store
