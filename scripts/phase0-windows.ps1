@@ -80,4 +80,4 @@ Write-Host ''
 Write-Host '=== Fase 0 selesai ===' -ForegroundColor Green
 Write-Host ('C: free sekarang: {0:N1} GB' -f ((Get-PSDrive C).Free / 1GB))
 Write-Host 'Berikutnya: buka terminal Ubuntu, lalu jalankan:'
-Write-Host '  sudo bash /mnt/d/Portofolio/CyberSecurity/home-lab/phase1-docker.sh'
+Write-Host '  sudo bash /mnt/d/Portofolio/CyberSecurity/home-lab/scripts/phase1-docker.sh'

@@ -5,7 +5,7 @@ WAZUH_TAG="v4.14.9"
 LAB_DIR="${HOME}/wazuh-lab"
 REPO_DIR="${LAB_DIR}/wazuh-docker"
 
-command -v docker >/dev/null 2>&1 || { echo "Docker belum terpasang. Jalankan phase1-docker.sh dulu."; exit 1; }
+command -v docker >/dev/null 2>&1 || { echo "Docker belum terpasang. Jalankan scripts/phase1-docker.sh dulu."; exit 1; }
 docker info >/dev/null 2>&1 || { echo "Docker daemon belum jalan. Jalankan: sudo service docker start"; exit 1; }
 
 echo "=== Fase 2: Wazuh single-node (${WAZUH_TAG}) ==="

@@ -1,7 +1,7 @@
 # Tuning Record — Rules 92213 and 92058
 
 **Status:** Applied October 29, 2026, then hardened the same day.  
-**Rule file:** `home-lab/wazuh-tuning-rules.xml`  
+**Rule file:** `home-lab/rules/wazuh-tuning-rules.xml`  
 **Manager location:** `/var/ossec/etc/rules/lab_tuning.xml`
 
 ## Active Rules

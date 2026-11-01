@@ -50,4 +50,4 @@ echo
 echo "=== Fase 1 selesai ==="
 echo "Tutup dan buka ulang terminal WSL supaya grup docker aktif."
 echo "Verifikasi: docker run --rm hello-world"
-echo "Berikutnya: bash /mnt/d/Portofolio/CyberSecurity/home-lab/phase2-wazuh.sh"
+echo "Berikutnya: bash /mnt/d/Portofolio/CyberSecurity/home-lab/scripts/phase2-wazuh.sh"

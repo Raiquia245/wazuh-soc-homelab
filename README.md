@@ -63,6 +63,25 @@ WSL2 Ubuntu (Docker) ───────────────────�
 ### Web scan detection
 ![Nikto web scan](docs/screenshots/nikto-webscan.png)
 
+### Additional evidence
+- [Failed logon 4625](docs/screenshots/alert-4625.png)
+- [Level-15 false positive 92213](docs/screenshots/false-positive-92213.png)
+- [SQL injection attempt 31103](docs/screenshots/nikto-sqli.png)
+- [XSS attempt 31105](docs/screenshots/nikto-xss.png)
+
+## Scripts
+
+| Script | Purpose |
+|---|---|
+| `scripts/phase0-windows.ps1` | Move the WSL VHDX to D: and tune RAM/CPU/swap |
+| `scripts/phase1-docker.sh` | Install Docker Engine and Compose |
+| `scripts/phase2-wazuh.sh` | Deploy Wazuh 4.14.9 single-node |
+| `scripts/phase3-windows.ps1` | Install Sysmon and the Wazuh agent on Windows |
+| `scripts/phase3-ossec.conf` | Wazuh agent configuration |
+| `scripts/phase3-verify.sh` | Verify agents, indices, and recent alerts; requires `WAZUH_API_PASSWORD` and `WAZUH_ADMIN_PASSWORD` |
+| `rules/wazuh-tuning-rules.xml` | Narrow tuning rules |
+| `phase4/` | DVWA, Linux victim, Apache log sidecar agent |
+
 ## Documentation
 
 - [docs/README.md](docs/README.md) — documentation index.
@@ -86,11 +105,8 @@ WSL2 Ubuntu (Docker) ───────────────────�
 home-lab/
 ├─ docs/                 # reports, tracking, journal, redacted screenshots
 ├─ phase4/               # DVWA, Linux victim, web log agent
-├─ phase0-windows.ps1    # disk/WSL tuning
-├─ phase1-docker.sh      # Docker Engine
-├─ phase2-wazuh.sh       # Wazuh single-node
-├─ phase3-*.{ps1,sh,conf}# Sysmon + Wazuh agent
-└─ wazuh-tuning-rules.xml
+├─ scripts/              # phase0-3 setup and verification
+└─ rules/                # Wazuh tuning rules
 ```
 
 ## Notes

@@ -15,18 +15,18 @@
 | 2026-10-25 | Inventory | Check OS, CPU, RAM, disk, Docker, virtualization, tools | `free -h`, `df -h`, `docker --version`, `/dev/kvm` | 16 GB RAM, C: 18.8 GB free, VHDX 28 GB on C:, Docker Desktop installed but stopped | Complete |
 | 2026-10-25 | 0 | Move Ubuntu VHDX to D: | `wsl --manage Ubuntu --move D:\WSL\Ubuntu` | VHDX on D:, C: freed ±28 GB | Complete |
 | 2026-10-25 | 0 | Tune WSL | `.wslconfig`: memory 10→8→6 GB, 4 vCPU, 4 GB swap on D:, autoMemoryReclaim | WSL 6 GB, 4 vCPU | Complete |
-| 2026-10-25 | 1 | Install Docker Engine + Compose | `phase1-docker.sh` | Docker 29.9.2, Compose 5.6.1 | Complete |
+| 2026-10-25 | 1 | Install Docker Engine + Compose | `scripts/phase1-docker.sh` | Docker 29.9.2, Compose 5.6.1 | Complete |
 | 2026-10-25 | 1 | Fix credential helper error | Remove `credsStore` from `~/.docker/config.json` (backup) | `hello-world` succeeded | Complete |
 | 2026-10-25 | 1 | Set `vm.max_map_count` | `sysctl -w vm.max_map_count=262144` + persist | Value 262144 | Complete |
-| 2026-10-25 | 2 | Clone and configure Wazuh | `phase2-wazuh.sh`, tag `v4.14.9` | Repo at `~/wazuh-lab/wazuh-docker` | Complete |
+| 2026-10-25 | 2 | Clone and configure Wazuh | `scripts/phase2-wazuh.sh`, tag `v4.14.9` | Repo at `~/wazuh-lab/wazuh-docker` | Complete |
 | 2026-10-25 | 2 | Fix empty certificates | Create `config/wazuh_indexer_ssl_certs`, regenerate certs | 12 complete cert files | Complete |
 | 2026-10-25 | 2 | Fix dashboard stuck on `.kibana_1` | Delete index, restart dashboard | Migration completed ±14 seconds, dashboard HTTP 200 | Complete |
 | 2026-10-25 | 2 | Validate stack | `docker compose ps`, cluster health, API | Manager/indexer/dashboard up, cluster `green`, agent 000 active | Complete |
 | 2026-10-26 | Resource | Analyze host RAM | Task Manager, `vmmemWSL`, `Get-Process` | Host 92–94%, vmmemWSL ±7.6 GB, high Windows baseline | Complete |
 | 2026-10-26 | Resource | Disable non-essential services/startup | `Set-Service ... Manual`, `Stop-Service` | CCleaner, SQL, MySQL, PostgreSQL, Splunkd, SplunkForwarder stopped/Manual | Complete |
 | 2026-10-26 | Resource | Reduce WSL to 6 GB + auto reclaim | `.wslconfig` | WSL 5.8 Gi; host free ±2.1 GB | Complete |
-| 2026-10-26 | 3 | Create Sysmon + agent scripts | `phase3-windows.ps1`, `phase3-ossec.conf`, `phase3-verify.sh` | Scripts syntactically valid | Complete |
-| 2026-10-26 | 3 | Install Sysmon + Wazuh agent | Run `phase3-windows.ps1` (UAC) | Sysmon64 Running, WazuhSvc Running | Complete |
+| 2026-10-26 | 3 | Create Sysmon + agent scripts | `scripts/phase3-windows.ps1`, `scripts/phase3-ossec.conf`, `scripts/phase3-verify.sh` | Scripts syntactically valid | Complete |
+| 2026-10-26 | 3 | Install Sysmon + Wazuh agent | Run `scripts/phase3-windows.ps1` (UAC) | Sysmon64 Running, WazuhSvc Running | Complete |
 | 2026-10-26 | 3 | Agent enrollment | Agent 001 `LAB-WIN` | Briefly `never_connected`, then `active` | Complete |
 | 2026-10-26 | 3 | Failed logon test | `net use \\127.0.0.1\IPC$ /user:fake wrongpass` | Security 4625 → rule 60122 | Complete |
 | 2026-10-26 | 3 | Process creation test | `notepad.exe`, `cmd`, PowerShell | Sysmon ID 1 → 92031/92032; 4688 → 67027 | Complete |
@@ -165,7 +165,7 @@ docker stats --no-stream
 ### Agent and alert verification
 
 ```bash
-bash /mnt/d/Portofolio/CyberSecurity/home-lab/phase3-verify.sh
+bash /mnt/d/Portofolio/CyberSecurity/home-lab/scripts/phase3-verify.sh
 ```
 
 ### Windows

@@ -287,7 +287,7 @@ Chronological journal of all technical actions in the home lab. Each entry recor
 - **Phase:** Tuning
 - **Action:** Applied narrow tuning rules for noise that had been verified benign.
 - **Artifacts:**
-  - `home-lab/wazuh-tuning-rules.xml`
+  - `home-lab/rules/wazuh-tuning-rules.xml`
   - `docs/08-TUNING.md`
   - Manager: `/var/ossec/etc/rules/lab_tuning.xml`
 - **Rules:**
